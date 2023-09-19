@@ -1,0 +1,35 @@
+{% load static %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+
+<nav class="navbar navbar-expand-lg custom-navbar" style='background-color:#80befb; height: 80x; color:white'>
+    <a class="navbar-brand" style="color:white" href="{% url 'Home' %}">
+      <!-- <img src="{% static 'ProyectoApp/img/logo.png' %}" width="55" height="35" class="d-inline-block align-top" alt="Logo">-->
+      Proyecto
+    </a>    
+    <!-- Toggle -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse justify-content-center" id="navbarNav" style="font-size:17px">
+      <ul class="navbar-nav">
+        
+        <li class="nav-item {% if request.path == '/' %}current_page_item{%endif %}">
+          <a class="nav-link" href="/">Inicio</a>
+        </li>
+        {% if user.is_authenticated %}
+        <li class="nav-item {% if request.path == '/usuarios/logout' %}current_page_item{%endif %}">
+          <a class="nav-link" href="{% url 'logout' %}"> Cerrar Sesión</a>
+        </li>
+        {% else %}
+        <li class="nav-item {% if request.path == '/usuarios/registro_representante/' %}current_page_item{%endif %}">
+          <a class="nav-link" href="{% url 'registro_representante' %}"> Registrarse</a>
+        </li>
+        <li class="nav-item {% if request.path == '/usuarios/login/' %}current_page_item{% endif %}">
+          <a class="btn btn-primary" href="{% url 'login' %}">
+            <i class="fa-solid fa-right-to-bracket"></i>
+          </a>
+          </li>
+    </div>
+    {% endif %}
+</nav>

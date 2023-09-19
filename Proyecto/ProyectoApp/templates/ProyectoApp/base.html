@@ -1,0 +1,57 @@
+<html>
+
+<head>
+
+    {% load static %}
+
+    <!-- Bootstrap -->
+    <link href="{% static 'ProyectoApp/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/803ea84c99.js" crossorigin="anonymous"></script>
+
+     <!-- Fonts -->
+    
+     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300&display=swap" rel="stylesheet"> 
+     <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i" rel="stylesheet">
+     
+
+    <!-- Styles -->
+<link href="{% static 'ProyectoApp/css/gestion.css' %}" rel="stylesheet">
+
+    <title>Proyecto</title>
+<style>
+  .custom-navbar .navbar-nav .nav-link {
+  color: #FFFFFF; /* Cambiar el color del texto a blanco */
+  font-size: 17px;
+}
+
+.custom-navbar .navbar-nav .current_page_item > .nav-link {
+  color: #000000; /* Cambiar el color del texto a negro solo cuando está activo */
+}
+
+  </style>
+</head>
+
+<body>
+
+  <!-- Nav Bar -->
+  {% include 'ProyectoApp/partials/navbar.html' %} 
+  
+  <!-- contenido -->
+  <div class="contenido">
+  {% block content %}
+  
+  {% endblock %}
+  </div>
+
+
+  <!-- Footer -->
+  {% include 'ProyectoApp/partials/footer.html' %} 
+
+  <!-- Bootstrap -->
+  <script src="{% static 'ProyectoApp/vendor/jquery/jquery.min.js' %}"></script>
+  <script src="{% static 'ProyectoApp/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  
+</body>
+
+
+</html>
