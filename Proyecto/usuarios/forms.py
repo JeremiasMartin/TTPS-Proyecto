@@ -51,3 +51,17 @@ class RepresentanteForm(forms.ModelForm):
         if commit:
             representante.save()
         return representante
+    
+
+class EditarRepresentanteForm(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = ['nombre', 'apellido', 'telefono']
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.nombre = self.cleaned_data['nombre']
+        user.apellido = self.cleaned_data['apellido']
+        user.telefono = self.cleaned_data['telefono']
+        if commit:
+            user.save()
+        return user

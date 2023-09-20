@@ -17,6 +17,20 @@
         <li class="nav-item {% if request.path == '/' %}current_page_item{%endif %}">
           <a class="nav-link" href="/">Inicio</a>
         </li>
+        {% if user.tipo_usuario == 'representante' %}
+        <li class="nav-item dropdown {% if request.path == '#' %}current_page_item{%endif %}">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Espacios Obligados
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Solicitar Autorización</a></li>
+            <li><a class="dropdown-item" href="#">Mis Espacios Obligados</a></li>
+          </ul>
+        </li>
+        <li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
+            <a class="nav-link" href="{% url 'perfil_representante' %}"> Mi Perfil</a>
+        </li>
+        {% endif %}
         {% if user.is_authenticated %}
         <li class="nav-item {% if request.path == '/usuarios/logout' %}current_page_item{%endif %}">
           <a class="nav-link" href="{% url 'logout' %}"> Cerrar Sesión</a>

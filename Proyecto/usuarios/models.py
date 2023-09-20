@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from django.utils import timezone
 
 class UsuarioManager(BaseUserManager):
 
@@ -71,4 +70,9 @@ class Representante(models.Model):
 
     def __str__(self) -> str:
         return '%s, %s' % (self.user.apellido, self.user.nombre)
+    
+    def save(self, *args, **kwargs):
+        self.user.tipo_usuario = 'representante'
+        self.user.save()
+        super().save(*args, **kwargs)
     

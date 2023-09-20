@@ -4,12 +4,11 @@ from .models import Usuario, Representante
 import random
 from django.contrib.auth import authenticate, login, logout as django_logout
 from django.contrib import messages
-from .forms import UserSign
-from email.mime.image import MIMEImage
+from .forms import UserSign, EditarRepresentanteForm
 from django.template.loader import get_template
 from Proyecto import settings
 from django.core.mail import EmailMultiAlternatives
-import os
+from django.contrib.auth.decorators import login_required
 
 
 def representante_signup(request):
@@ -88,3 +87,24 @@ def user_logout(request):
     
     django_logout(request)
     return redirect('/')
+
+
+def perfil_representante(request):
+    representante = Representante.objects.get(user=request.user)
+    return render(request, 'representante/perfil_representante.html', {'representante': representante})
+
+@login_required
+def editar_perfil_representante(request):
+    perfil = request.user
+    if request.method == 'POST':
+        form = EditarRepresentanteForm(request.POST, request.FILES, instance=perfil)
+        if form.is_valid():
+            perfil = form.save(commit=False)
+            perfil.user = request.user
+            perfil.save()
+            messages.success(request, "¡Información actualizada correctamente!")
+            return redirect('/usuarios/perfil_representante')
+    else:
+        form = EditarRepresentanteForm(instance=perfil)
+    context = {'form': form, 'errors': form.errors}
+    return render(request, 'representante/editar_perfil_representante.html', context)

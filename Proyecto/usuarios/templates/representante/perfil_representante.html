@@ -1,0 +1,45 @@
+{% extends "ProyectoApp/base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<h1>Perfil del Representante</h1>
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <div id="msg-{{ message.tags }}"class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </ul>
+{% endif %}
+<section id="listado" class="py-4">
+    <div class="container" >
+        <div class="card-deck">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="listing-heading text-center">
+                            <h5 class="card-title">Perfil</h5>
+                        </div>
+                        <p class="card-text text-wrap"><i class="fa-solid fa-envelope" style="color: #e4a64e;"></i> Email: {{ representante.user.email }}</p>
+                        <hr>
+                        <p class="card-text"><i class="fa-solid fa-user" style="color: #e4a64e;"></i> Nombre: {{ representante.user.nombre }}</p>
+                        <hr>
+                        <p class="card-text"><i class="fa-solid fa-user" style="color: #e4a64e;"></i> Apellido: {{ representante.user.apellido }}</p>
+                        <hr>
+                        <p class="card-text"><i class="fa-solid fa-id-card" style="color: #e4a64e;"></i> Dni: {{ representante.user.dni }}</p>
+                        <hr>
+                        <p class="card-text"><i class="fa-solid fa-phone-volume" style="color: #e4a64e;"></i> Teléfono: {{ representante.user.telefono }}</p>
+                        <hr>
+                        <a href="{% url 'editar_perfil_representante' %}" class="btn btn-primary">Editar perfil</a>
+                        <a href="#" class="btn btn-primary">Cambiar Clave</a>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </div>
+</section>
+
+{% endblock %}
