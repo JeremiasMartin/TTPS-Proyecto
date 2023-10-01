@@ -75,4 +75,37 @@ class Representante(models.Model):
         self.user.tipo_usuario = 'representante'
         self.user.save()
         super().save(*args, **kwargs)
+
+
+class Provincias(models.Model):
+    provincia_id = models.AutoField(primary_key=True)
+    nombre = models.CharField('Nombre', max_length=30, blank=False, null=False, default='')
+    validez_certificado = models.PositiveIntegerField('Validez del Certificado', blank=False, null=False, default='')
+
+    class Meta:
+        verbose_name = 'provincia'
+        db_table = 'provincias'
+
+    def __str__(self) -> str:
+        return '%s' % (self.nombre)
+    
+
+class AdminProvincial(models.Model):
+    user = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    admin_provincial_id = models.AutoField(primary_key=True)
+    provincias = models.ManyToManyField(Provincias, related_name='administradores_provinciales')
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'administrador provincial'
+        db_table = 'administradores_provinciales'
+
+    def __str__(self) -> str:
+        return '%s, %s' % (self.user.apellido, self.user.nombre)
+
+    def save(self, *args, **kwargs):
+        self.user.tipo_usuario = 'admin_provincial'
+        self.user.save()
+        super().save(*args, **kwargs)
+
     
