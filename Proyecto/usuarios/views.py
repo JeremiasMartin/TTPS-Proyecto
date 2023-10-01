@@ -9,6 +9,9 @@ from django.template.loader import get_template
 from Proyecto import settings
 from django.core.mail import EmailMultiAlternatives
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView
+from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm, PasswordResetForm
+from django.urls import reverse_lazy
 
 
 def representante_signup(request):
@@ -108,3 +111,41 @@ def editar_perfil_representante(request):
         form = EditarRepresentanteForm(instance=perfil)
     context = {'form': form, 'errors': form.errors}
     return render(request, 'representante/editar_perfil_representante.html', context)
+
+class cambiar_contrasenia(PasswordChangeView):
+      form_class = PasswordChangeForm
+      success_url ="/usuarios/ver_perfil/"
+
+class LoginAfterPasswordChangeView(PasswordChangeView):
+    @property
+    def success_url(self):
+        return reverse_lazy('/usuarios/login/')
+
+login_after_password_change = login_required(LoginAfterPasswordChangeView.as_view())
+
+
+
+def restablecer_contraseña(request):   
+    if request.method == "POST":
+        form = PasswordResetForm(data=request.POST)
+        if form.is_valid(): 
+            mail = form.cleaned_data.get("email")
+            if Usuario.objects.filter(email=mail).exists():
+                form.save(from_email='proyecto@proyecto.com', email_template_name='registration/password_reset_email.html', request=request)
+                return redirect('/usuarios/restablecer_contrasenia_enviado')          
+            else:
+                messages.error(request, "El mail ingresado no se encuentra registrado en el sistema")  
+        else: 
+              messages.error(request, "No existe ese mail") 
+    form =  PasswordResetForm()     
+    context = {'form' : form}
+    return render(request, 'usuario/cambio_de_clave/restablecer_contrasenia.html', context)     
+     
+      
+class restPasswordConfirm(PasswordResetConfirmView):
+      form_class = SetPasswordForm
+     
+
+def restDone(request):
+    
+    return render(request, 'usuario/cambio_de_clave/restablecer_contrasenia_enviado.html') 
