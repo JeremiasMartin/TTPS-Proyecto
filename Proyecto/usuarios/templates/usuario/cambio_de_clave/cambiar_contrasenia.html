@@ -1,0 +1,41 @@
+{% extends "ProyectoApp/base.html" %}
+{% load static %}
+{% block title %} Cambiar Contraseña {% endblock %}
+{% block content %}
+   
+<form method="post" id="cambiar-contrasena-form"> 
+    {% csrf_token %} 
+    {{ form.as_p}} 
+    <button type="submit" id="btn-cambiar-contrasena" disabled>cambiar contraseña</button> 
+</form> 
+<a href="/">Cancelar</a>
+
+<script>
+  const form = document.getElementById('cambiar-contrasena-form');
+  const btnCambiarContrasena = document.getElementById('btn-cambiar-contrasena');
+
+  form.addEventListener('submit', (event) => {
+    if (!validateForm()) {
+      event.preventDefault();
+    }
+  });
+
+  form.addEventListener('input', () => {
+    validateForm();
+  });
+
+  function validateForm() {
+    const currentPassword = document.getElementById('id_old_password').value;
+    const newPassword1 = document.getElementById('id_new_password1').value;
+    const newPassword2 = document.getElementById('id_new_password2').value;
+
+    if (currentPassword.trim() === '' || newPassword1.trim() === '' || newPassword2.trim() === '') {
+      btnCambiarContrasena.disabled = true;
+      return false;
+    } else {
+      btnCambiarContrasena.disabled = false;
+      return true;
+    }
+  }
+</script>
+{% endblock %}
