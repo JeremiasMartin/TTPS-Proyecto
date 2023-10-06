@@ -1,0 +1,37 @@
+{% extends "ProyectoApp/base.html" %}
+{% load leaflet_tags %}
+{% load static %}
+{% block content %}
+<head>
+  {% leaflet_js plugins="forms" %}
+  {% leaflet_css plugins="forms" %}
+ </head>
+
+  <h1>Registrar Sede para {{ entidad }}</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Guardar Sede</button>
+  </form>
+  
+  <h2>Sedes Registradas para {{ entidad.razon_social }}:</h2>
+  <ul>
+    {% for sede in sedes %}
+      <li>{{ sede.nombre }}</li>
+    {% endfor %}
+  </ul>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var map = L.map('id_ubicacion-map').setView([-35.0, -65.0], 5); // Coordenadas de Argentina y nivel de zoom
+  
+      L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+        attribution: 'Map data &copy; <a href="https://carto.com/">Carto</a>',
+        subdomains: 'abcd',
+        minZoom: 0,
+        maxZoom: 40,
+      }).addTo(map);
+    });
+  </script>
+  {% endblock %}
