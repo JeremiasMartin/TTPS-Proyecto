@@ -1,0 +1,9 @@
+{% extends "ProyectoApp/base.html" %}
+{% block content %}
+<h1>Lista de mis Entidades-Sedes</h1>
+    <ul>
+        {% for espacio in entidades_sedes %}
+            <li>{{ espacio.nombre }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

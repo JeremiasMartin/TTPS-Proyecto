@@ -1,0 +1,11 @@
+{% extends "ProyectoApp/base.html" %}
+{% block content %}
+  <h1>Sedes de {{ entidad.nombre }}</h1>
+  <ul>
+    {% for sede in sedes %}
+      <li>{{ sede.nombre }}</li>
+    {% endfor %}
+  </ul>
+  <a href="{% url 'registrar_sede' entidad.id %}">Registrar Nueva Sede</a>
+  <a href="{% url 'registrar_entidad' %}">Volver a Registrar Entidad</a>
+{% endblock %}

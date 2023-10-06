@@ -1,0 +1,18 @@
+{% extends "ProyectoApp/base.html" %}
+{% block content %}
+  <h1>Registrar Entidad</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Registrar</button>
+  </form>
+
+  <h2>Entidades Registradas:</h2>
+  <ul>
+    {% for entidad in entidades %}
+      <li>{{ entidad.razon_social }}</li>
+      <a href="{% url 'registrar_sede' entidad.id %}">Registrar Nueva Sede</a>
+    {% endfor %}
+  </ul>
+{% endblock %}

@@ -23,8 +23,8 @@
               Espacios Obligados
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Solicitar Autorización</a></li>
-            <li><a class="dropdown-item" href="#">Mis Espacios Obligados</a></li>
+            <li><a class="dropdown-item" href="{% url 'registrar_entidad' %}">Solicitar Autorización</a></li>
+            <li><a class="dropdown-item" href="{% url 'listar_mis_entidades_sedes' %}">Mis Espacios Obligados</a></li>
           </ul>
         </li>
         <li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
