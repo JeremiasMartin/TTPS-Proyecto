@@ -70,7 +70,7 @@ cover/
 *.mo
 
 # Django stuff:
-Proyecto/Proyecto/settings.py
+Proyecto\Proyecto\settings.py
 
 # Flask stuff:
 instance/
