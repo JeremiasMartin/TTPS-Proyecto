@@ -1,41 +1,48 @@
-{% extends "ProyectoApp/base.html" %}
+{% extends "ProyectoApp/app.html" %}
 {% load static %}
 {% block title %} Cambiar Contraseña {% endblock %}
+{% block breadcrumb %}
+<section class="content-header">
+  <div class="container-fluid">
+      <div class="row mb-2">
+          <div class="col-sm-6">
+              <h1>Cambiar Contraseña</h1>
+          </div>
+          <div class="col-sm-6">
+              <ol class="breadcrumb float-sm-right">
+                  <li class="breadcrumb-item"><a href="{% url 'Dash' %}">Dashboard</a></li>
+                  <li class="breadcrumb-item active">Cambiar Contraseña</li>
+              </ol>
+          </div>
+      </div>
+  </div>
+</section>
+{% endblock breadcrumb %}
+
 {% block content %}
-   
-<form method="post" id="cambiar-contrasena-form"> 
-    {% csrf_token %} 
-    {{ form.as_p}} 
-    <button type="submit" id="btn-cambiar-contrasena" disabled>cambiar contraseña</button> 
-</form> 
-<a href="/">Cancelar</a>
+<div class="row">
+  <div class="col-md-6">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">Editar Perfil</h3>
+      </div>
+      <form method="POST" id="cambiar-contrasena-form"> 
+        {% csrf_token %}
+        <div class="card-body">
+          {{ form.as_p}}
+        </div>
 
-<script>
-  const form = document.getElementById('cambiar-contrasena-form');
-  const btnCambiarContrasena = document.getElementById('btn-cambiar-contrasena');
+        <div class="card-footer">
+          <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+          <a href="{% url 'perfil_representante' %}" class="btn btn-default">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
-  form.addEventListener('submit', (event) => {
-    if (!validateForm()) {
-      event.preventDefault();
-    }
-  });
+{% endblock %}
 
-  form.addEventListener('input', () => {
-    validateForm();
-  });
+{% block custom_js %}
 
-  function validateForm() {
-    const currentPassword = document.getElementById('id_old_password').value;
-    const newPassword1 = document.getElementById('id_new_password1').value;
-    const newPassword2 = document.getElementById('id_new_password2').value;
-
-    if (currentPassword.trim() === '' || newPassword1.trim() === '' || newPassword2.trim() === '') {
-      btnCambiarContrasena.disabled = true;
-      return false;
-    } else {
-      btnCambiarContrasena.disabled = false;
-      return true;
-    }
-  }
-</script>
 {% endblock %}

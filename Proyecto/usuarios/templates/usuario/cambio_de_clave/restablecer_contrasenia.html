@@ -1,50 +1,42 @@
-{% extends 'ProyectoApp/base.html' %}
-{% load static %}
-{% block title %} <title> Restablecer contraseña </title>{%endblock%}
+{% extends "ProyectoApp/auth/auth.html" %}
+
+{% load static %}{% load crispy_forms_tags %}
+
+{% block title %} Ingresar {% endblock title %} 
+
 {% block content %}
 
-{% if messages %}
-    {% for message in messages %}
-    <div id="msg-{{ message.tags }}" class="{% if message.tags == 'error' %} msg-error {% else %} alert alert-success {% endif %}" style="padding-top: 10px; margin-top:10px">
-        <!--<button class="close" data-dismiss="alert" aria-label="close">&times;</button>-->
-        {{ message }}
+{{ block.super }}
+
+<div class="card">
+    <div class="card-body login-card-body">
+        <p class="login-box-msg">Inicia sesión para comenzar</p>
+
+        <form id="login-form" method="POST">
+            {% csrf_token %}
+            <div class="input-group mb-3">
+                <!-- {{ form.email }} -->
+                <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" class="form-control" placeholder="Correo electrónico" {% if form.email.value != None %} value="{{ form.email.value }}" {% endif %}>
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-envelope"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary btn-block mb-2">
+                        Restablecer contraseña
+                    </button>
+                    
+                    <a href="/" type="button" class="btn btn-default btn-block mt-2">Volver</a>
+                </div>
+            </div>
+        </form>
     </div>
-    {% endfor %}
-{% endif %}
-<form method="post"> 
-    ¿Olvidaste tu contraseña? Ingrese su dirección de correo electrónico a continuación y le enviaremos las instrucciones para configurar una nueva.
-    {% csrf_token %} 
-    {{ form.as_p}} 
-    <button id="restablecer-btn" disabled>Restablecer contraseña</button>
-</form> 
-<a href="/usuarios/login">Cancelar</a>
+</div>
+{% endblock %} 
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-
-        var emailField = document.getElementById("id_email");
-        var restablecerBtn = document.getElementById("restablecer-btn");
-
-        var emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-    
-        function validateEmail(email) {
-            return emailRegex.test(email);
-        }
-
-    
-        emailField.addEventListener("input", function() {
-            var email = emailField.value.trim();
-            
-    
-            if (email !== "" && validateEmail(email)) {
-                restablecerBtn.disabled = false;
-            } else {
-                restablecerBtn.disabled = true;
-            }
-        });
-    });
-</script>
-
-
-{%endblock%}
+{% block custom_js %}
+{% endblock custom_js %}

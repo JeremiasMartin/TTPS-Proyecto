@@ -1,12 +1,10 @@
-{% extends 'ProyectoApp/base.html' %}
+{% extends 'ProyectoApp/auth/auth.html' %}
 {% load static %}
-{% block title %} <title> Restablecimiento de contraseña enviado </title>{%endblock%}
+{% block title %} Restablecimiento de contraseña enviado{%endblock%}
 {% block content %}
 
-
-
-<p style="margin-top:20px; padding: .75rem 1.25rem;">Le enviamos instrucciones por correo electrónico para restablecer su contraseña. Debería recibirlos en breve.</p>
-
+    <p>Le enviamos instrucciones por correo electrónico para restablecer su contraseña. Debería recibirlos en breve.</p>
+    <a href="/">Volver</a>
 
 
 {%endblock%}

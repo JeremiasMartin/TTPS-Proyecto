@@ -3,6 +3,8 @@ from .models import Usuario
 import random
 from django.utils.encoding import force_str
 import string
+from django.contrib.auth.forms import PasswordChangeForm
+from django.utils.translation import gettext_lazy as _
 
 
 class UserSign(forms.Form):
@@ -82,7 +84,21 @@ class RepresentanteForm(forms.ModelForm):
 class EditarRepresentanteForm(forms.ModelForm):
     class Meta:
         model = Usuario
-        fields = ['nombre', 'apellido', 'telefono']
+        fields = ['nombre', 'apellido', 'telefono', 'dni']
+
+    def __init__(self, *args, **kwargs):
+        super(EditarRepresentanteForm, self).__init__(*args, **kwargs)
+        self.fields['nombre'] = forms.CharField(required=True, label=force_str(
+            "Nombre"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su nombre', 'class': 'form-control'}))
+
+        self.fields['apellido'] = forms.CharField(required=True, label=force_str(
+            "Apellido"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su apellido', 'class': 'form-control'}))
+
+        self.fields['dni'] = forms.IntegerField(required=True, label=force_str(
+            "DNI"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su DNI', 'class': 'form-control', 'type': 'number'}))
+
+        self.fields['telefono'] = forms.IntegerField(required=True, label=force_str(
+            "Teléfono"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su teléfono', 'class': 'form-control', 'type': 'number'}))
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -92,3 +108,34 @@ class EditarRepresentanteForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    old_password = forms.CharField(
+        label=_("Contraseña anterior"),
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={"autocomplete": "current-password",
+                   "class": "form-control", "autofocus": True}
+        ),
+    )
+
+    new_password1 = forms.CharField(
+        label=_("Nueva contraseña"),
+        widget=forms.PasswordInput(
+            attrs={"autocomplete": "new-password", "class": "form-control"}),
+    )
+
+    new_password2 = forms.CharField(
+        label=_("Confirmar nueva contraseña"),
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={"autocomplete": "new-password", "class": "form-control"}),
+    )
+
+    error_messages = {
+        "password_incorrect": _(
+            "Su antigua contraseña fue ingresada incorrectamente. Por favor ingréselo nuevamente.",
+        ),
+        "password_mismatch": _("Los dos campos de contraseña no coinciden."),
+    }

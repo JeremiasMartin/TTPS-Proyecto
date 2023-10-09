@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'leaflet',
     'crispy_bootstrap4',
     'crispy_forms',
+    'espacios_obligados',
 ]
 
 MIDDLEWARE = [

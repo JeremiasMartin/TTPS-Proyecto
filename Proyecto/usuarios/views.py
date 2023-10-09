@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import RepresentanteForm
+from .forms import CustomPasswordChangeForm, RepresentanteForm
 from .models import Usuario, Representante
 import random
 from django.contrib.auth import authenticate, login, logout as django_logout
@@ -78,7 +78,7 @@ def user_login(request):
             print(user)
             if user is not None:
                 login(request, user)
-                return redirect('/')
+                return redirect('Dash')
             else:
                 messages.error(
                     request, "Correo y/o contraseña incorrectos. Por favor! vuelva a ingresarlos", "danger")
@@ -120,8 +120,8 @@ def editar_perfil_representante(request):
 
 
 class cambiar_contrasenia(PasswordChangeView):
-    form_class = PasswordChangeForm
-    success_url = "/usuarios/ver_perfil/"
+    form_class = CustomPasswordChangeForm
+    success_url = "/usuarios/perfil_representante"
 
 
 class LoginAfterPasswordChangeView(PasswordChangeView):

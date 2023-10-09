@@ -1,7 +1,8 @@
-{% extends 'ProyectoApp/base.html' %}
+{% extends 'ProyectoApp/auth/auth.html' %}
 
 {% block title %}Restablecer Contraseña{% endblock %}
 
 {% block content %}
-La clave ha sido cambiada con éxito.
+    <p>La clave ha sido cambiada con éxito.</p>
+    <p>Vuelve a <a href="{% url 'login' %}" class="nav-link">Iniciar sesión</a></p>
 {% endblock %}
