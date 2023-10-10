@@ -1,0 +1,20 @@
+{% extends "ProyectoApp/base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+{{ block.super }}
+<head>
+    <title>Página de Inicio del Administrador Provincial</title>
+</head>
+<body>
+    <h1>Bienvenido al Administrador Provincial</h1>
+    <!-- Agrega el contenido de la página aquí -->
+    <h2>Admin : {{admin}}</h2>
+    {% for proyecto in provincias_asociadas %}
+            <li>{{proyecto}}</li>
+    {% endfor %}
+</body>
+</html>
+{% endblock %}
