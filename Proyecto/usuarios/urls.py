@@ -14,4 +14,7 @@ urlpatterns = [
     path('reset_password_complete/', auth_views.PasswordResetCompleteView.as_view(template_name="usuario/cambio_de_clave/restablecer_contrasenia_exitoso.html"), name='password_reset_complete'),
     path('cambiar_contrasenia/', views.cambiar_contrasenia.as_view(template_name='usuario/cambio_de_clave/cambiar_contrasenia.html')),
     path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
+    #-- paths para Admin provincial
+    path('inicioAdminProvincial/',views.inicioAdminProvincial,name='inicioAdminProvincial'),
+    path('registroAdminProvincial/', views.adminProvincial_signup, name='registroAdminProvincial'),
 ]

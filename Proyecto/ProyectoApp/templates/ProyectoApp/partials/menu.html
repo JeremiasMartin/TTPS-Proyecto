@@ -29,3 +29,8 @@
     </ul>
 </li>
 {% endif %}
+{% if user.tipo_usuario == 'admin_provincial' %}
+        <li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
+          <a class="nav-link" href="{% url 'inicioAdminProvincial' %}" >Administrador Provincial</a>
+        </li>
+{% endif %}
