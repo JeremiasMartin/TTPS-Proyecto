@@ -1,6 +1,8 @@
 from django import forms
 from .models import Entidad, Sede, Provincias
 from leaflet.forms.widgets import LeafletWidget
+from django.contrib.gis.geos import Point
+from django.contrib.gis import forms as gis_forms
 
 class EntidadForm(forms.ModelForm):
     class Meta:
@@ -8,13 +10,12 @@ class EntidadForm(forms.ModelForm):
         fields = ['razon_social', 'cuit', 'sector', 'tipo']
 
 class SedeForm(forms.ModelForm):
+
+    ubicacion = gis_forms.PointField(widget=LeafletWidget())
+
     class Meta:
         model = Sede
-        fields = ['nombre', 'cant_personas_externas', 'superficie', 'ubicacion', 'cant_personal', 'direccion', 'provincia']
-        widgets = {
-            'ubicacion': LeafletWidget(),
-        }
-        provincia = forms.ModelChoiceField(queryset=Provincias.objects.all())
+        fields = ['nombre', 'cant_personas_externas', 'superficie', 'cant_personal', 'direccion', 'provincia', 'ubicacion']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -25,7 +26,7 @@ class SedeForm(forms.ModelForm):
         if not ubicacion:
             raise forms.ValidationError('Debe seleccionar una ubicación en el mapa.')
         return ubicacion
-    
+
     def save(self, commit=True):
         sede = super().save(commit=False)
         coordenadas = self.cleaned_data.get('ubicacion')

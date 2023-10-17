@@ -22,16 +22,6 @@
     {% endfor %}
   </ul>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      var map = L.map('id_ubicacion-map').setView([-35.0, -65.0], 5); // Coordenadas de Argentina y nivel de zoom
-  
-      L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
-        attribution: 'Map data &copy; <a href="https://carto.com/">Carto</a>',
-        subdomains: 'abcd',
-        minZoom: 0,
-        maxZoom: 40,
-      }).addTo(map);
-    });
-  </script>
+  <div id="id_ubicacion-map" style="width: 700px; height: 400px;">{{ form.ubicacion }}</div>
+
   {% endblock %}

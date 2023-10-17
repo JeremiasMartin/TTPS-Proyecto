@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from .models import Entidad, Sede, Provincias
 from .forms import EntidadForm, SedeForm
+from django.contrib.gis.geos import Point
+from usuarios.models import Representante
 
 # Create your views here.
 
@@ -18,18 +20,27 @@ def registrar_entidad(request):
 def registrar_sede(request, entidad_id):
     entidad = Entidad.objects.get(id=entidad_id)
     sedes = Sede.objects.filter(entidad=entidad)
+
     if request.method == 'POST':
         form = SedeForm(request.POST)
         if form.is_valid():
             sede = form.save(commit=False)
             sede.entidad = entidad
-            sede.representantes = request.user.representante
-            sede.save()
+            coordenadas = request.POST.get('ubicacion')  # Obtiene el valor de la ubicación del campo oculto
+            if coordenadas:
+                coordenadas_list = coordenadas.split(',')
+                if len(coordenadas_list) == 2:
+                    latitud, longitud = coordenadas_list
+                    sede.ubicacion = Point(float(longitud), float(latitud))
+            representante = Representante.objects.get(user=request.user)
+            sede.save()  # Guarda la sede primero
+            sede.representantes.add(representante)  # Agrega representantes después de guardar la sede
             return redirect('listar_sedes', entidad_id=entidad.id)
     else:
         form = SedeForm()
     provincias = Provincias.objects.all()
     return render(request, 'sede/registrar_sede.html', {'form': form, 'entidad': entidad, 'sedes': sedes, 'provincias': provincias})
+
 
 def listar_sedes(request, entidad_id):
     entidad = Entidad.objects.get(id=entidad_id)
