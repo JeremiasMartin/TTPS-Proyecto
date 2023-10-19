@@ -24,13 +24,14 @@ class Sede(models.Model):
     direccion = models.CharField(max_length=200)
     provincia = models.ForeignKey(Provincias, on_delete=models.CASCADE)
     entidad = models.ForeignKey(Entidad, on_delete=models.CASCADE)
+
     def __str__(self):
-        return self.nombre
+        return '%s , %s' % (self.nombre, self.provincia) 
     
 
 class EspacioObligado(models.Model):
-    nombre = models.CharField(max_length=200)
-    estado = models.CharField(max_length=100,default='')  # Agregando el campo estado
+    estado = models.CharField(max_length=100,default='EN PROCESO')  # Agregando el campo estado
     sede = models.ForeignKey(Sede, on_delete=models.CASCADE)
+    motivo= models.TextField(blank=True,default='')
     def __str__(self):
-        return self.nombre
+        return self.estado
