@@ -48,7 +48,7 @@ class DEA(models.Model):
     modelo = models.CharField(max_length=200)
     numero_serie = models.CharField(max_length=200)
     nombre_representativo = models.CharField(max_length=200)
-    estado = models.CharField(max_length=10, choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')])
+    estado = models.CharField(max_length=10, choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')], default='activo')
 
     def __str__(self):
         return self.sede.nombre
