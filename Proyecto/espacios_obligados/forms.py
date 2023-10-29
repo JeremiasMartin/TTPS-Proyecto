@@ -78,13 +78,20 @@ class DeclaracionJuradaForm(forms.ModelForm):
 
 
 class DEAForm(forms.ModelForm):
-    aprobacion_ANMAT = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     marca = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     modelo = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     numero_serie = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     nombre_representativo = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    estado = forms.ChoiceField(choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')], widget=forms.Select(attrs={'class': 'form-control'}))
 
     class Meta:
         model = DEA
-        fields = ['aprobacion_ANMAT', 'marca', 'modelo', 'numero_serie', 'nombre_representativo', 'estado']
+        fields = ['marca', 'modelo', 'numero_serie', 'nombre_representativo']
+
+
+class DEAEditForm(forms.ModelForm):
+    numero_serie = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    nombre_representativo = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = DEA
+        fields = ['numero_serie', 'nombre_representativo']
