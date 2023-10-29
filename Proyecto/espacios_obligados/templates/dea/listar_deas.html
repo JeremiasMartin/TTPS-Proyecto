@@ -1,0 +1,25 @@
+{% extends "ProyectoApp/base.html" %}
+{% load static %}
+{% block content %}
+<a href="{% url 'registrar_dea' sede.id %}">Registrar Nuevo DEA</a>
+<div class="card-container">
+  {% for dea in deas %}
+  <div class="card">
+    <div class="card-header">
+      <h3>{{ dea.nombre_representativo }}</h3>
+    </div>
+    <div class="card-body">
+      <p>Marca: {{ dea.marca }}</p>
+      <p>Modelo: {{ dea.modelo }}</p>
+      <a href="{% url 'editar_dea' dea.id %}" class="btn btn-primary">Editar</a>
+      <a href="{% url 'validar_dea' dea.id %}" class="btn btn-success">Validar</a>
+      {% if dea.aprobacion_ANMAT %}
+        <span class="validado">Validado</span>
+      {% else %}
+        <span class="no-validado">No Validado</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

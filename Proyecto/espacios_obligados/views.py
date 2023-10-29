@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
-from .models import Entidad, Sede, Provincias
-from .forms import EntidadForm, SedeForm, EditSedeForm, DeclaracionJuradaForm, DEAForm
+from .models import *
+from .forms import *
 from django.contrib.gis.geos import Point
 from usuarios.models import Representante
+import requests
+from django.http import JsonResponse
 
 # Create your views here.
 
@@ -101,7 +103,7 @@ def registrar_dea(request, sede_id):
         form = DEAForm(request.POST)
         if form.is_valid():
             dea = form.save(commit=False)
-            dea.sede = sede
+            dea.dea_sede = sede
             dea.save()
 
             sede.deas_registrados.add(dea)
@@ -109,4 +111,67 @@ def registrar_dea(request, sede_id):
             return redirect('listar_mis_entidades_sedes')
     else:
         form = DEAForm()
-    return render(request, 'sede/registrar_dea.html', {'form': form, 'sede': sede})
+    return render(request, 'dea/registrar_dea.html', {'form': form, 'sede': sede})
+
+
+def listar_deas(request, sede_id):
+    sede = Sede.objects.get(id=sede_id)
+    deas = DEA.objects.filter(dea_sede=sede)
+    return render(request, 'dea/listar_deas.html', {'sede': sede, 'deas': deas})
+
+
+def editar_dea(request, dea_id):
+    dea = DEA.objects.get(id=dea_id)
+    sede_id = dea.dea_sede.id
+    if request.method == 'POST':
+        form = DEAEditForm(request.POST, instance=dea)
+        if form.is_valid():
+            dea = form.save(commit=False)
+            dea.save()
+            return redirect('listar_deas', sede_id=sede_id)
+    else:
+        form = DEAEditForm(instance=dea)
+    return render(request, 'dea/editar_dea.html', {'form': form, 'sede':sede_id, 'dea': dea})
+
+
+
+
+def verificar_aprobacion_ANMAT(request, dea_id):
+
+    try:
+        # Obtén el DEA con el ID especificado
+        dea = DEA.objects.get(id=dea_id)
+
+        # URL de la API para obtener la lista de modelos del DEA con el ID especificado
+        url = f'https://api.claudioraverta.com/deas/{dea.marca}/modelos/'
+
+        # Realizar una solicitud GET a la API
+        response = requests.get(url)
+
+        # Comprobar si la respuesta tiene el código de estado 200 (OK)
+        if response.status_code == 200:
+            # Analizar la respuesta JSON
+            modelos = response.json()
+            
+            # Verificar si el modelo está en la lista de modelos aprobados por ANMAT
+            if any(modelo.get("nombre") == dea.modelo for modelo in modelos):
+                # El DEA con el modelo especificado está aprobado por ANMAT
+                # Ahora, debes actualizar el campo aprobacion_ANMAT en tu modelo DEA
+                
+                # Establece el campo aprobacion_ANMAT en True
+                dea.aprobacion_ANMAT = True
+                dea.save()
+                
+                return JsonResponse({'success': True})  # Aprobado por ANMAT y campo actualizado
+
+            else:
+                return JsonResponse({'success': False, 'message': f'El DEA { dea.marca } { dea.modelo } no está aprobado por ANMAT'})
+
+        else:
+            return JsonResponse({'success': False, 'message': f'Error en la solicitud a la API: {response.status_code}'})
+
+    except DEA.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'No se encontró el DEA con el ID especificado'})
+
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({'success': False, 'message': f'Error en la solicitud a la API: {str(e)}'})
