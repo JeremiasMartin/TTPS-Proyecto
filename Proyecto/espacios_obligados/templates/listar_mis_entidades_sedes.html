@@ -4,6 +4,7 @@
     <ul>
         {% for espacio in entidades_sedes %}
             <li>{{ espacio.nombre }}</li>
+            <a href="{% url 'administrar_entidad_sede' espacio.id %}">Administrar</a>
         {% endfor %}
     </ul>
 {% endblock %}

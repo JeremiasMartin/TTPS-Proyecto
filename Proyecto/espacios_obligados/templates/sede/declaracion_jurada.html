@@ -1,0 +1,36 @@
+{% extends "ProyectoApp/base.html" %}
+{% load static %}
+{% block title %}Declaración Jurada{% endblock %}
+{% block content %}
+<style>
+    .form-check input[type="checkbox"] {
+        margin-left: 10px;
+    }
+</style>
+<form method="post">
+    {% csrf_token %}
+    <div class="form-check">
+        <label class="form-check-label" for="{{ form.personal_capacitado.id_for_label }}">¿Posee personal capacitado?</label>
+        {{ form.personal_capacitado }}
+    </div>
+    <div class="form-check">
+        <label class="form-check-label" for="{{ form.senaletica.id_for_label }}">¿Cuenta con señalética adecuada?</label>
+        {{ form.senaletica }}
+    </div>
+    <div class="form-check">
+        <label class="form-check-label" for="{{ form.protocolo_accion.id_for_label }}">¿Posee un protocolo de acción, en caso de muerte súbita?</label>
+        {{ form.protocolo_accion }}
+    </div>
+    <div class="form-check">
+        <label class="form-check-label" for="{{ form.sistema_emergencia.id_for_label }}">¿Cuenta con un sistema de emergencia médica?</label>
+        {{ form.sistema_emergencia }}
+    </div>
+    <br>
+    <div class="form-group">
+        <label for="{{ form.deas_decreto.id_for_label }}">Teniendo en cuenta el decreto reglamentario, ¿Cuántos DEAs le corresponden a su establecimiento?</label>
+        {{ form.deas_decreto }}
+    </div>
+    <button type="submit">Guardar Cambios</button>
+</form>
+<a href="{% url 'administrar_entidad_sede' sede.id %}">Atrás</a>
+{% endblock %}

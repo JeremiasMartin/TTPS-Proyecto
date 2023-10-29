@@ -1,0 +1,16 @@
+{% extends "ProyectoApp/base.html" %}
+{% load leaflet_tags %}
+{% load static %}
+{% block content %}
+<head>
+    {% leaflet_js plugins="forms" %}
+    {% leaflet_css plugins="forms" %}
+</head>
+<h1>Editar Sede {{ sede.nombre }}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Guardar Cambios</button>
+</form>
+<a href="{% url 'administrar_entidad_sede' sede.id %}">Atrás</a>
+{% endblock %}
