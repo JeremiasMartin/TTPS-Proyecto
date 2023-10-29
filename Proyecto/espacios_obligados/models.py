@@ -10,6 +10,7 @@ class Entidad(models.Model):
     cuit = models.CharField(max_length=200)
     sector = models.CharField(max_length=200)
     tipo = models.CharField(max_length=200)
+    
     def __str__(self):
         return self.razon_social
     
@@ -22,6 +23,17 @@ class Sede(models.Model):
     ubicacion = gis_models.PointField()
     cant_personal = models.IntegerField(default=0)
     direccion = models.CharField(max_length=200)
+
+    # Declaración Jurada
+    
+    personal_capacitado = models.BooleanField(default=False)
+    senaletica = models.BooleanField(default=False)
+    protocolo_accion = models.BooleanField(default=False)
+    sistema_emergencia = models.BooleanField(default=False)
+    deas_registrados = models.ManyToManyField('DEA', blank=True)
+    deas_decreto = models.IntegerField(default=0)
+
+
     provincia = models.ForeignKey(Provincias, on_delete=models.CASCADE)
     entidad = models.ForeignKey(Entidad, on_delete=models.CASCADE)
 
@@ -33,5 +45,24 @@ class EspacioObligado(models.Model):
     estado = models.CharField(max_length=100,default='EN PROCESO')  # Agregando el campo estado
     sede = models.ForeignKey(Sede, on_delete=models.CASCADE)
     motivo= models.TextField(blank=True,default='')
+class DEA(models.Model):
+    dea_sede = models.ForeignKey(Sede, on_delete=models.CASCADE)
+    aprobacion_ANMAT = models.BooleanField(default=False)
+    marca = models.CharField(max_length=200)
+    modelo = models.CharField(max_length=200)
+    numero_serie = models.CharField(max_length=200)
+    nombre_representativo = models.CharField(max_length=200)
+    estado = models.CharField(max_length=10, choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')], default='activo')
+
+    def __str__(self):
+        return self.sede.nombre
+    
+
+class HistorialDEA(models.Model):
+    dea = models.ForeignKey(DEA, on_delete=models.CASCADE)
+    dia = models.DateField()
+    servicio = models.CharField(max_length=200)
+    observaciones = models.CharField(max_length=200, blank=True, null=True)
+
     def __str__(self):
         return self.estado

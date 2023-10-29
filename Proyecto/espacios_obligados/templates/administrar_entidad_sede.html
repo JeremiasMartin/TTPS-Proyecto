@@ -1,0 +1,23 @@
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link active" id="info-tab" data-toggle="tab" href="{% url 'editar_sede' sede.id %}">Información de Entidad-Sede</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="condiciones-tab" data-toggle="tab" href="{% url 'declaracion_jurada' sede.id %}">Condiciones para Espacio Cardio Asistido</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="deas-tab" data-toggle="tab" href="{% url 'listar_deas' sede.id %}">Mis DEAS</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="info">
+        <!-- Contenido de Información de Entidad-Sede -->
+    </div>
+    <div class="tab-pane fade" id="condiciones">
+        <!-- Contenido de Condiciones para Espacio Cardio Asistido -->
+    </div>
+    <div class="tab-pane fade" id="deas">
+        <!-- Contenido de Condiciones DEAS -->
+    </div>
+</div>
