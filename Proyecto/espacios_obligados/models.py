@@ -23,23 +23,26 @@ class Sede(models.Model):
     ubicacion = gis_models.PointField()
     cant_personal = models.IntegerField(default=0)
     direccion = models.CharField(max_length=200)
-
-    # Declaración Jurada
-    
     personal_capacitado = models.BooleanField(default=False)
+    # Declaración Jurada
     senaletica = models.BooleanField(default=False)
     protocolo_accion = models.BooleanField(default=False)
     sistema_emergencia = models.BooleanField(default=False)
     deas_registrados = models.ManyToManyField('DEA', blank=True)
     deas_decreto = models.IntegerField(default=0)
-
-
     provincia = models.ForeignKey(Provincias, on_delete=models.CASCADE)
     entidad = models.ForeignKey(Entidad, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.nombre
+        return '%s , %s' % (self.nombre, self.provincia) 
     
+
+class EspacioObligado(models.Model):
+    estado = models.CharField(max_length=100,default='EN PROCESO')  # Agregando el campo estado
+    sede = models.ForeignKey(Sede, on_delete=models.CASCADE)
+    motivo= models.TextField(blank=True,default='')
+    def __str__(self):
+        return f'!nombre sede {self.sede.nombre} y estado{self.estado}'
 
 class DEA(models.Model):
     dea_sede = models.ForeignKey(Sede, on_delete=models.CASCADE)
@@ -61,4 +64,4 @@ class HistorialDEA(models.Model):
     observaciones = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
-        return self.dea.nombre_representativo
+        return self.estado

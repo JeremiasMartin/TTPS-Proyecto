@@ -1,6 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect , get_object_or_404
 from .forms import AdminProvincialForm, RepresentanteForm,CustomPasswordChangeForm
-from .models import Usuario, Representante ,AdminProvincial,Provincias
+from .models import Usuario, Representante ,AdminProvincial
+from espacios_obligados.models import Sede,EspacioObligado 
 import random
 from django.contrib.auth import authenticate, login, logout as django_logout
 from django.contrib import messages
@@ -161,11 +162,6 @@ def restDone(request):
 
     return render(request, 'usuario/cambio_de_clave/restablecer_contrasenia_enviado.html')
 
-def inicioAdminProvincial(request):
-    administrador = AdminProvincial.objects.get(user=request.user)
-    provincias_asociadas = administrador.provincias.all()
-    return render(request, 'adminProvincial/inicioAdminProvincial.html',{'provincias_asociadas': provincias_asociadas,'admin':administrador})
-
 def adminProvincial_signup(request):
     if request.method == 'POST':
         form = RepresentanteForm(request.POST)
@@ -218,3 +214,27 @@ def adminProvincial_signup(request):
     else:
         form = AdminProvincialForm()
     return render(request, 'adminProvincial/formAdminProvincial.html', {'form': form})
+
+def inicioAdminProvincial(request):
+    
+    administrador = AdminProvincial.objects.get(user=request.user)
+    provincias_asociadas = administrador.provincias.all()
+    sedes_sin_espacio = Sede.objects.filter(espacioobligado__isnull=True).intersection(Sede.objects.filter(provincia__in = provincias_asociadas))
+    return render(request, 'adminProvincial/inicioAdminProvincial.html',{'admin':administrador,'provincias':provincias_asociadas,'espacios':sedes_sin_espacio})
+
+def cambiar_estado_espacio(request,sede_id):
+    print(f'ID del Espacio: {sede_id}')
+    if request.method == 'POST':
+        sede = Sede.objects.get(id=sede_id)
+        espacio=EspacioObligado()
+        espacio.sede=Sede.objects.get(id=sede_id)
+        if request.POST.get('action') == 'aprobar':
+            espacio.estado= 'CARDIO ASISTIDO'
+
+        elif request.POST.get('action') == 'rechazar':
+            espacio.estado = 'EN PROCESO'
+            espacio.motivo = request.POST.get('reason')
+        print(espacio)
+        espacio.save()
+
+    return redirect('inicioAdminProvincial')
