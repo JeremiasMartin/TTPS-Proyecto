@@ -17,4 +17,5 @@ urlpatterns = [
     #-- paths para Admin provincial
     path('inicioAdminProvincial/',views.inicioAdminProvincial,name='inicioAdminProvincial'),
     path('registroAdminProvincial/', views.adminProvincial_signup, name='registroAdminProvincial'),
+    path('cambiar_estado_espacio/<int:sede_id>/', views.cambiar_estado_espacio, name='cambiar_estado_espacio'),
 ]
