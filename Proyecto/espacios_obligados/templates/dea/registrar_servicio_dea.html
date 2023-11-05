@@ -1,0 +1,16 @@
+{% extends "ProyectoApp/base.html" %}
+{% load static %}
+{% block content %}
+<style>
+    .form-check-input[type="checkbox"] {
+        margin-left: 10px;
+    }
+</style>
+<h1>Registrar servicio</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+</form>
+<a class="btn btn-primary" href="{% url 'listar_deas' sede.id %}">Atrás</a>
+{% endblock %}

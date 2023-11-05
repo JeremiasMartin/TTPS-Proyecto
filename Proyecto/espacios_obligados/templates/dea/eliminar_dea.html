@@ -1,0 +1,10 @@
+{% extends "ProyectoApp/base.html" %}
+{% block content %}
+<h1>Eliminar DEA</h1>
+<p>¿Estás seguro de que deseas eliminar el DEA "{{ dea.nombre_representativo }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a class="btn btn-primary" href="{% url 'listar_deas' sede_id=sede %}">Cancelar</a>
+</form>
+{% endblock %}
