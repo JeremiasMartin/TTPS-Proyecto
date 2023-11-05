@@ -1,5 +1,5 @@
 from django import forms
-from .models import Entidad, Sede, Provincias, DEA
+from .models import Entidad, Sede, Provincias, DEA, HistorialDEA, Responsable
 from leaflet.forms.widgets import LeafletWidget
 from django.contrib.gis.geos import Point
 from django.contrib.gis import forms as gis_forms
@@ -78,20 +78,47 @@ class DeclaracionJuradaForm(forms.ModelForm):
 
 
 class DEAForm(forms.ModelForm):
-    marca = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    modelo = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     numero_serie = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     nombre_representativo = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    solidario = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
 
+        
     class Meta:
         model = DEA
-        fields = ['marca', 'modelo', 'numero_serie', 'nombre_representativo']
+        fields = ['marca', 'modelo', 'numero_serie', 'nombre_representativo', 'solidario']
 
 
 class DEAEditForm(forms.ModelForm):
     numero_serie = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     nombre_representativo = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    solidario = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
 
     class Meta:
         model = DEA
-        fields = ['numero_serie', 'nombre_representativo']
+        fields = ['numero_serie', 'nombre_representativo', 'solidario']
+
+
+class DEAServicioForm(forms.ModelForm):
+    dia = forms.DateField(required=True, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    opciones = [
+        ('Reparación', 'Reparación'),
+        ('Mantenimiento', 'Mantenimiento'),
+    ]
+    servicio = forms.ChoiceField(required=True, choices=opciones, widget=forms.Select(attrs={'class': 'form-control'}))
+    observaciones = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = HistorialDEA
+        fields = ['dia', 'servicio', 'observaciones']
+
+
+
+class ResponsableForm(forms.ModelForm):
+    nombre = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    apellido = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    telefono = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    email = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = Responsable
+        fields = ['nombre', 'apellido', 'telefono', 'email']

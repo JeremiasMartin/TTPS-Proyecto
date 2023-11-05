@@ -23,6 +23,7 @@ class Sede(models.Model):
     ubicacion = gis_models.PointField()
     cant_personal = models.IntegerField(default=0)
     direccion = models.CharField(max_length=200)
+    responsables = models.ManyToManyField('Responsable', blank=True, related_name='responsables')
 
     # Declaración Jurada
     
@@ -43,11 +44,11 @@ class Sede(models.Model):
 
 class DEA(models.Model):
     dea_sede = models.ForeignKey(Sede, on_delete=models.CASCADE)
-    aprobacion_ANMAT = models.BooleanField(default=False)
     marca = models.CharField(max_length=200)
     modelo = models.CharField(max_length=200)
     numero_serie = models.CharField(max_length=200)
     nombre_representativo = models.CharField(max_length=200)
+    solidario = models.BooleanField(default=False)
     estado = models.CharField(max_length=10, choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')], default='activo')
 
     def __str__(self):
@@ -62,3 +63,14 @@ class HistorialDEA(models.Model):
 
     def __str__(self):
         return self.dea.nombre_representativo
+
+
+class Responsable(models.Model):
+    sede_asignada = models.ForeignKey(Sede, on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=200)
+    apellido = models.CharField(max_length=200)
+    telefono = models.CharField(max_length=200)
+    email = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.nombre + " " + self.apellido
