@@ -11,13 +11,14 @@
     <div class="card-body">
       <p>Marca: {{ dea.marca }}</p>
       <p>Modelo: {{ dea.modelo }}</p>
+      <p>Numero de Serie: {{ dea.numero_serie }}</p>
+      <p>{% if dea.solidario %} Es solidario {% else %} No es solidario {% endif %}</p>
+      <hr>
       <a href="{% url 'editar_dea' dea.id %}" class="btn btn-primary">Editar</a>
-      <a href="{% url 'validar_dea' dea.id %}" class="btn btn-success">Validar</a>
-      {% if dea.aprobacion_ANMAT %}
-        <span class="validado">Validado</span>
-      {% else %}
-        <span class="no-validado">No Validado</span>
-      {% endif %}
+      <a href="{% url 'registrar_servicio_dea' dea.id %}" class="btn btn-primary">Registrar Reparación/Mantenimiento</a>
+      <a href="{% url 'listar_reparaciones_dea' dea.id %}" class="btn btn-primary">Ver Reparaciones</a>
+      <a href="{% url 'listar_mantenimientos_dea' dea.id %}" class="btn btn-primary">Ver Mantenimientos</a>
+      <a href="{% url 'eliminar_dea' dea.id %}" class="btn btn-danger">Eliminar</a>
     </div>
   </div>
   {% endfor %}
