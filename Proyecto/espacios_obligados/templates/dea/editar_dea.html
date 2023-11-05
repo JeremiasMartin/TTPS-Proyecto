@@ -1,6 +1,11 @@
 {% extends "ProyectoApp/base.html" %}
 {% load static %}
 {% block content %}
+<style>
+    .form-check-input[type="checkbox"] {
+        margin-left: 10px;
+    }
+</style>
 <h1>Editar DEA</h1>
 <form method="post">
     {% csrf_token %}
