@@ -31,6 +31,9 @@
 {% endif %}
 {% if user.tipo_usuario == 'admin_provincial' %}
         <li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
-          <a class="nav-link" href="{% url 'inicioAdminProvincial' %}" >Administrador Provincial</a>
+          <a class="nav-link" href="{% url 'inicioAdminProvincial' %}" >Administrar solicitudes</a>
+        </li>
+        <li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
+          <a class="nav-link" href="{% url 'cambiar_dias_validez' %}" >Cambiar validez de provincia</a>
         </li>
 {% endif %}
