@@ -4,7 +4,9 @@
     <ul>
         {% for espacio in entidades_sedes %}
             <li>{{ espacio.nombre }}</li>
-            <a href="{% url 'administrar_entidad_sede' espacio.id %}">Administrar</a>
+            <a href="{% url 'administrar_entidad_sede' espacio.id %}" class="btn btn-primary">Administrar</a>
+            <a href="{% url 'registrar_responsable' espacio.id %}" class="btn btn-primary">Registrar Responsable</a>
+            <a href="{% url 'listar_responsables' espacio.id %}" class="btn btn-primary">Listar Responsables</a>
         {% endfor %}
     </ul>
 {% endblock %}

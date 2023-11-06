@@ -1,0 +1,29 @@
+{% extends "ProyectoApp/base.html" %}
+{% load static %}
+{% block content %}
+<div class="card-container">
+    {% if responsables %}
+    {% for responsable in responsables %}
+    <div class="card">
+      <div class="card-header">
+        <h3>Responsables de {{ sede.nombre }}</h3>
+      </div>
+      <div class="card-body">
+        <p>Nombre: {{ responsable.nombre }}</p>
+        <p>Apellido: {{ responsable.apellido }}</p>
+        <p>Teléfono: {{ responsable.telefono }}</p>
+        <p>Email: {{ responsable.email }}</p>
+        <a href="{% url 'editar_responsable' responsable.id %}" class="btn btn-primary">Editar</a>
+        <a href="{% url 'eliminar_responsable' responsable.id %}" class="btn btn-danger">Eliminar</a>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="card">
+      <div class="card-header">
+        <p>No hay responsables registrados para {{ sede.nombre }}</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endblock %}
