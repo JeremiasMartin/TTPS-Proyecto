@@ -5,6 +5,7 @@ from django.contrib.gis.geos import Point
 from usuarios.models import Representante
 import requests
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 # Create your views here.
 
@@ -97,21 +98,72 @@ def declaracion_jurada(request, sede_id):
 
 
 
+
 def registrar_dea(request, sede_id):
     sede = Sede.objects.get(id=sede_id)
+
+    # Realiza una solicitud a la API para obtener las marcas disponibles
+    url = 'https://api.claudioraverta.com/deas/'
+
+    try:
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            marcas = [{'id': dea['id'], 'marca': dea['marca']} for dea in response.json()]
+        else:
+            marcas = []
+
+    except requests.exceptions.RequestException as e:
+        print(f'Error en la solicitud a la API: {str(e)}')
+        marcas = []
+
     if request.method == 'POST':
         form = DEAForm(request.POST)
         if form.is_valid():
             dea = form.save(commit=False)
+            marca_id = request.POST.get('marca')
+            marca_nombre = None
+            
+            for marca in marcas:
+                if str(marca['id']) == str(marca_id):
+                    marca_nombre = marca['marca']
+                    break
+            dea.marca = marca_id if marca_nombre is None else marca_nombre
             dea.dea_sede = sede
             dea.save()
-
             sede.deas_registrados.add(dea)
+            return redirect('listar_deas', sede_id=sede.id)
 
-            return redirect('listar_mis_entidades_sedes')
     else:
         form = DEAForm()
-    return render(request, 'dea/registrar_dea.html', {'form': form, 'sede': sede})
+
+    return render(request, 'dea/registrar_dea.html', {'form': form, 'sede': sede, 'marcas': marcas})
+
+
+
+def cargar_modelos(request):
+    marca_seleccionada = request.POST.get('marca', None)
+    if marca_seleccionada:
+        url = f'https://api.claudioraverta.com/deas/{marca_seleccionada}/modelos/'
+
+        try:
+            response = requests.get(url)
+
+            if response.status_code == 200:
+                modelos = [modelo['nombre'] for modelo in response.json()]
+            else:
+                modelos = []
+
+        except requests.exceptions.RequestException as e:
+            print(f'Error en la solicitud a la API: {str(e)}')
+            modelos = []
+    else:
+        modelos = []
+
+    return JsonResponse({'modelos': modelos})
+
+
+
 
 
 def listar_deas(request, sede_id):
@@ -135,43 +187,80 @@ def editar_dea(request, dea_id):
 
 
 
+    
+def eliminar_dea(request, dea_id):
+    dea = DEA.objects.get(id=dea_id)
+    sede_id = dea.dea_sede.id
+    if request.method == 'POST':
+        dea.delete()
+        return redirect('listar_deas', sede_id=sede_id)
+    return render(request, 'dea/eliminar_dea.html', {'dea': dea, 'sede': sede_id})
 
-def verificar_aprobacion_ANMAT(request, dea_id):
+def registrar_servicio_dea(request, dea_id):
+    dea = DEA.objects.get(id=dea_id)
+    sede = dea.dea_sede
+    if request.method == 'POST':
+        form = DEAServicioForm(request.POST)
+        if form.is_valid():
+            servicio = form.save(commit=False)
+            servicio.dea = dea
+            servicio.save()
+            return redirect('listar_deas', sede_id=dea.dea_sede.id)
+    else:
+        form = DEAServicioForm()
+    return render(request, 'dea/registrar_servicio_dea.html', {'form': form, 'dea': dea, 'sede': sede})
 
-    try:
-        # Obtén el DEA con el ID especificado
-        dea = DEA.objects.get(id=dea_id)
 
-        # URL de la API para obtener la lista de modelos del DEA con el ID especificado
-        url = f'https://api.claudioraverta.com/deas/{dea.marca}/modelos/'
+def listar_reparaciones_dea(request, dea_id):
+    dea = DEA.objects.get(id=dea_id)
+    sede = dea.dea_sede
+    reparaciones = HistorialDEA.objects.filter(dea=dea, servicio='Reparación')
+    return render(request, 'dea/listar_reparaciones.html', {'dea': dea, 'reparaciones': reparaciones, 'sede': sede})
 
-        # Realizar una solicitud GET a la API
-        response = requests.get(url)
+def listar_mantenimientos_dea(request, dea_id):
+    dea = DEA.objects.get(id=dea_id)
+    sede = dea.dea_sede
+    mantenimientos = HistorialDEA.objects.filter(dea=dea, servicio='Mantenimiento')
+    return render(request, 'dea/listar_mantenimientos.html', {'dea': dea, 'mantenimientos': mantenimientos, 'sede': sede})
 
-        # Comprobar si la respuesta tiene el código de estado 200 (OK)
-        if response.status_code == 200:
-            # Analizar la respuesta JSON
-            modelos = response.json()
-            
-            # Verificar si el modelo está en la lista de modelos aprobados por ANMAT
-            if any(modelo.get("nombre") == dea.modelo for modelo in modelos):
-                # El DEA con el modelo especificado está aprobado por ANMAT
-                # Ahora, debes actualizar el campo aprobacion_ANMAT en tu modelo DEA
-                
-                # Establece el campo aprobacion_ANMAT en True
-                dea.aprobacion_ANMAT = True
-                dea.save()
-                
-                return JsonResponse({'success': True})  # Aprobado por ANMAT y campo actualizado
 
-            else:
-                return JsonResponse({'success': False, 'message': f'El DEA { dea.marca } { dea.modelo } no está aprobado por ANMAT'})
 
-        else:
-            return JsonResponse({'success': False, 'message': f'Error en la solicitud a la API: {response.status_code}'})
+def registrar_responsable(request, sede_id):
+    sede = Sede.objects.get(id=sede_id)
+    if request.method == 'POST':
+        form = ResponsableForm(request.POST)
+        if form.is_valid():
+            responsable = form.save(commit=False)
+            responsable.sede_asignada = sede
+            responsable.save()
+            sede.responsables.add(responsable)
+            return redirect('listar_mis_entidades_sedes')
+    else:
+        form = ResponsableForm()
+    return render(request, 'responsable/registrar_responsable.html', {'form': form, 'sede': sede})
 
-    except DEA.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'No se encontró el DEA con el ID especificado'})
+def listar_responsables(request, sede_id):
+    sede = Sede.objects.get(id=sede_id)
+    responsables = Responsable.objects.filter(sede_asignada=sede)
+    return render(request, 'responsable/listar_responsables.html', {'sede': sede, 'responsables': responsables})
 
-    except requests.exceptions.RequestException as e:
-        return JsonResponse({'success': False, 'message': f'Error en la solicitud a la API: {str(e)}'})
+def editar_responsable(request, responsable_id):
+    responsable = Responsable.objects.get(id=responsable_id)
+    sede_id = responsable.sede_asignada.id
+    if request.method == 'POST':
+        form = ResponsableForm(request.POST, instance=responsable)
+        if form.is_valid():
+            responsable = form.save(commit=False)
+            responsable.save()
+            return redirect('listar_responsables', sede_id=sede_id)
+    else:
+        form = ResponsableForm(instance=responsable)
+    return render(request, 'responsable/editar_responsable.html', {'form': form, 'sede': sede_id, 'responsable': responsable})
+
+def eliminar_responsable(request, responsable_id):
+    responsable = Responsable.objects.get(id=responsable_id)
+    sede_id = responsable.sede_asignada.id
+    if request.method == 'POST':
+        responsable.delete()
+        return redirect('listar_responsables', sede_id=sede_id)
+    return render(request, 'responsable/eliminar_responsable.html', {'responsable': responsable, 'sede': sede_id})
