@@ -2,12 +2,13 @@ from django.shortcuts import render, redirect
 from .models import *
 from .forms import *
 from django.contrib.gis.geos import Point
-from usuarios.models import Representante
+from usuarios.models import Representante, Certificante
 import requests
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 # Create your views here.
+
 
 def registrar_entidad(request):
     entidades = Entidad.objects.all()
@@ -20,6 +21,7 @@ def registrar_entidad(request):
         form = EntidadForm()
     return render(request, 'entidad/registrar_entidad.html', {'form': form, 'entidades': entidades})
 
+
 def registrar_sede(request, entidad_id):
     entidad = Entidad.objects.get(id=entidad_id)
     sedes = Sede.objects.filter(entidad=entidad)
@@ -29,7 +31,8 @@ def registrar_sede(request, entidad_id):
         if form.is_valid():
             sede = form.save(commit=False)
             sede.entidad = entidad
-            coordenadas = request.POST.get('ubicacion')  # Obtiene el valor de la ubicación del campo oculto
+            # Obtiene el valor de la ubicación del campo oculto
+            coordenadas = request.POST.get('ubicacion')
             if coordenadas:
                 coordenadas_list = coordenadas.split(',')
                 if len(coordenadas_list) == 2:
@@ -37,7 +40,8 @@ def registrar_sede(request, entidad_id):
                     sede.ubicacion = Point(float(longitud), float(latitud))
             representante = Representante.objects.get(user=request.user)
             sede.save()  # Guarda la sede primero
-            sede.representantes.add(representante)  # Agrega representantes después de guardar la sede
+            # Agrega representantes después de guardar la sede
+            sede.representantes.add(representante)
             return redirect('listar_sedes', entidad_id=entidad.id)
     else:
         form = SedeForm()
@@ -97,8 +101,6 @@ def declaracion_jurada(request, sede_id):
     return render(request, 'sede/declaracion_jurada.html', {'form': form, 'sede': sede})
 
 
-
-
 def registrar_dea(request, sede_id):
     sede = Sede.objects.get(id=sede_id)
 
@@ -109,7 +111,8 @@ def registrar_dea(request, sede_id):
         response = requests.get(url)
 
         if response.status_code == 200:
-            marcas = [{'id': dea['id'], 'marca': dea['marca']} for dea in response.json()]
+            marcas = [{'id': dea['id'], 'marca': dea['marca']}
+                      for dea in response.json()]
         else:
             marcas = []
 
@@ -123,7 +126,7 @@ def registrar_dea(request, sede_id):
             dea = form.save(commit=False)
             marca_id = request.POST.get('marca')
             marca_nombre = None
-            
+
             for marca in marcas:
                 if str(marca['id']) == str(marca_id):
                     marca_nombre = marca['marca']
@@ -138,7 +141,6 @@ def registrar_dea(request, sede_id):
         form = DEAForm()
 
     return render(request, 'dea/registrar_dea.html', {'form': form, 'sede': sede, 'marcas': marcas})
-
 
 
 def cargar_modelos(request):
@@ -163,9 +165,6 @@ def cargar_modelos(request):
     return JsonResponse({'modelos': modelos})
 
 
-
-
-
 def listar_deas(request, sede_id):
     sede = Sede.objects.get(id=sede_id)
     deas = DEA.objects.filter(dea_sede=sede)
@@ -183,11 +182,9 @@ def editar_dea(request, dea_id):
             return redirect('listar_deas', sede_id=sede_id)
     else:
         form = DEAEditForm(instance=dea)
-    return render(request, 'dea/editar_dea.html', {'form': form, 'sede':sede_id, 'dea': dea})
+    return render(request, 'dea/editar_dea.html', {'form': form, 'sede': sede_id, 'dea': dea})
 
 
-
-    
 def eliminar_dea(request, dea_id):
     dea = DEA.objects.get(id=dea_id)
     sede_id = dea.dea_sede.id
@@ -195,6 +192,7 @@ def eliminar_dea(request, dea_id):
         dea.delete()
         return redirect('listar_deas', sede_id=sede_id)
     return render(request, 'dea/eliminar_dea.html', {'dea': dea, 'sede': sede_id})
+
 
 def registrar_servicio_dea(request, dea_id):
     dea = DEA.objects.get(id=dea_id)
@@ -217,12 +215,13 @@ def listar_reparaciones_dea(request, dea_id):
     reparaciones = HistorialDEA.objects.filter(dea=dea, servicio='Reparación')
     return render(request, 'dea/listar_reparaciones.html', {'dea': dea, 'reparaciones': reparaciones, 'sede': sede})
 
+
 def listar_mantenimientos_dea(request, dea_id):
     dea = DEA.objects.get(id=dea_id)
     sede = dea.dea_sede
-    mantenimientos = HistorialDEA.objects.filter(dea=dea, servicio='Mantenimiento')
+    mantenimientos = HistorialDEA.objects.filter(
+        dea=dea, servicio='Mantenimiento')
     return render(request, 'dea/listar_mantenimientos.html', {'dea': dea, 'mantenimientos': mantenimientos, 'sede': sede})
-
 
 
 def registrar_responsable(request, sede_id):
@@ -239,10 +238,12 @@ def registrar_responsable(request, sede_id):
         form = ResponsableForm()
     return render(request, 'responsable/registrar_responsable.html', {'form': form, 'sede': sede})
 
+
 def listar_responsables(request, sede_id):
     sede = Sede.objects.get(id=sede_id)
     responsables = Responsable.objects.filter(sede_asignada=sede)
     return render(request, 'responsable/listar_responsables.html', {'sede': sede, 'responsables': responsables})
+
 
 def editar_responsable(request, responsable_id):
     responsable = Responsable.objects.get(id=responsable_id)
@@ -257,6 +258,7 @@ def editar_responsable(request, responsable_id):
         form = ResponsableForm(instance=responsable)
     return render(request, 'responsable/editar_responsable.html', {'form': form, 'sede': sede_id, 'responsable': responsable})
 
+
 def eliminar_responsable(request, responsable_id):
     responsable = Responsable.objects.get(id=responsable_id)
     sede_id = responsable.sede_asignada.id
@@ -264,3 +266,18 @@ def eliminar_responsable(request, responsable_id):
         responsable.delete()
         return redirect('listar_responsables', sede_id=sede_id)
     return render(request, 'responsable/eliminar_responsable.html', {'responsable': responsable, 'sede': sede_id})
+
+
+def listar_espacios_obligados_certificante(request):
+    certificante = Certificante.objects.get(user=request.user)
+    certificante_provincias = certificante.provincias.all()
+
+    espacios_obligados = []
+    for provincia in certificante_provincias:
+        espacios = EspacioObligado.objects.filter(sede__provincia=provincia)
+        # Agrega los espacios obligados a la lista
+        espacios_obligados.extend(espacios)
+
+    print(espacios_obligados)
+
+    return render(request, 'certificante/listar_espacios_obligados.html', {'espacios_obligados': espacios_obligados})

@@ -1,0 +1,128 @@
+{% extends "ProyectoApp/app.html" %}
+{% load static %}
+{% block title %} Listado de Espacios Obligados {% endblock %}
+{% block custom_css %}
+
+{% endblock %}
+{% block breadcrumb %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Listado de Espacios Obligados</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'Dash' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Listado de Espacios Obligados</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock breadcrumb %}
+
+{% block content %}
+<!-- Default box -->
+<div class="card card-solid">
+    <div class="card-body pb-0">
+        <div class="row">
+            {% for espacio_obligado in espacios_obligados %}
+            <div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column">
+                <div class="card bg-light d-flex flex-fill">
+                    <div class="card-header text-muted border-bottom-0">
+                        Espacio Obligado
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="row">
+                            <div class="col-6">
+                                <h2 class="lead"><b>{{ espacio_obligado.sede.nombre }}</b></h2>
+
+                                <p class="text-muted text-sm">
+                                    <b>Cant. Personas externas: </b>
+                                    {{ espacio_obligado.sede.cant_personas_externas }}
+                                    <br>
+                                    <b>Estado: </b>
+                                    {{ espacio_obligado.estado }}
+                                    <br>
+                                    <b>Superficie: </b>
+                                    {{ espacio_obligado.sede.superficie }}
+                                    <br>
+                                    <b>Dirección: </b>
+                                    {{ espacio_obligado.sede.direccion }}
+                                    <br>
+                                    <b>Provincia: </b>
+                                    {{ espacio_obligado.sede.provincia }}
+                                </p>
+                            </div>
+                            <div class="col-6">
+                                <h2 class="lead"><b>Declaración Jurada</b></h2>
+                                <p class="text-muted text-sm">
+                                    <b>Personal capacitado: </b>
+                                    {% if espacio_obligado.sede.personal_capacitado %}
+                                    Si
+                                    {% else %}
+                                    No
+                                    {% endif %}
+                                    <br>
+
+                                    <b>Señaletica: </b>
+                                    {% if espacio_obligado.sede.senaletica %}
+                                    Si
+                                    {% else %}
+                                    No
+                                    {% endif %}
+                                    <br>
+
+                                    <b>Protocolo Acción: </b>
+                                    {% if espacio_obligado.sede.protocolo_accion %}
+                                    Si
+                                    {% else %}
+                                    No
+                                    {% endif %}
+                                    <br>
+
+                                    <b>Sistema Emergencia: </b>
+                                    {% if espacio_obligado.sede.sistema_emergencia %}
+                                    Si
+                                    {% else %}
+                                    No
+                                    {% endif %}
+                                    <br>
+
+                                    <b>Deas registrados: </b>
+                                    {{ espacio_obligado.sede.deas_registrados.count }}
+                                    <br>
+
+                                    <b>Deas decreto: </b>
+                                    {{ espacio_obligado.sede.deas_decreto }}
+                                    <br>
+
+                                    <b>Entidad: </b>
+                                    {{ espacio_obligado.sede.entidad.razon_social }}
+                                    <br>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="text-right">
+                            <a href="#" class="btn btn-sm bg-teal">
+                                <i class="fas fa-comments"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-primary">
+                                <i class="fas fa-user"></i> View Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block custom_js %}
+
+{% endblock %}
