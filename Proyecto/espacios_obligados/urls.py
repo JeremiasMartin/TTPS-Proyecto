@@ -21,4 +21,10 @@ urlpatterns = [
     path('listar_responsables/<int:sede_id>/', views.listar_responsables, name='listar_responsables'),
     path('editar_responsable/<int:responsable_id>/', views.editar_responsable, name='editar_responsable'),
     path('eliminar_responsable/<int:responsable_id>/', views.eliminar_responsable, name='eliminar_responsable'),
+    path('solicitud_aprobacion/', views.solicitud_aprobacion, name='solicitud_aprobacion'),
+    path('solicitud_aprobar/<int:solicitud_id>/', views.aprobar_solicitud, name='aprobar_solicitud'),
+    path('lista_solicitudes_pendientes/', views.lista_solicitudes_pendientes, name='lista_solicitudes_pendientes'),
+    path('aprobar_solicitud/<int:solicitud_id>/', views.aprobar_solicitud, name='aprobar_solicitud'),
+    path('rechazar_solicitud/<int:solicitud_id>/', views.rechazar_solicitud, name='rechazar_solicitud'),
+
 ]

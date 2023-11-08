@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from .models import *
 from .forms import *
+from django.contrib import messages
 from django.contrib.gis.geos import Point
 from usuarios.models import Representante
 import requests
-from django.http import JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_POST
 
 # Create your views here.
@@ -264,3 +265,63 @@ def eliminar_responsable(request, responsable_id):
         responsable.delete()
         return redirect('listar_responsables', sede_id=sede_id)
     return render(request, 'responsable/eliminar_responsable.html', {'responsable': responsable, 'sede': sede_id})
+
+def solicitud_aprobacion(request):
+    show_alert = False
+    show_submit_alert = True
+    if request.method == 'POST':
+        form = SolicitudAprobacionForm(request.POST)
+        if form.is_valid():
+            representante = request.user.representante
+            entidad = form.cleaned_data['entidad']
+            sede = form.cleaned_data['sede']
+            motivo = form.cleaned_data['motivo']
+            
+            # Verificar si ya existe una solicitud con la misma entidad y sede
+            if SolicitudAprobacion.objects.filter(entidad=entidad, sede=sede).exists():
+                # Mostrar un mensaje de error
+                show_alert = True
+                show_submit_alert=False
+                messages.error(request, 'Ya has solicitado para esta entidad y sede.')
+                return render(request, 'solicitud_aprobacion.html', {'form': form, 'show_alert': show_alert, 'show_submit_alert': show_submit_alert})
+            
+            solicitud_aprobacion = SolicitudAprobacion(
+                representante=representante, 
+                entidad=entidad, 
+                sede=sede, 
+                motivo=motivo
+            )
+            solicitud_aprobacion.save() 
+            return redirect('/dash')
+            
+    else:
+        form = SolicitudAprobacionForm()
+
+    return render(request, 'solicitud_aprobacion.html', {'form': form, 'show_alert': show_alert, 'show_submit_alert': True})
+
+
+
+def lista_solicitudes_pendientes(request):   
+
+    solicitudes_pendientes = SolicitudAprobacion.objects.filter(aprobado=False)
+    return render(request, 'lista_solicitudes_pendientes.html', {'solicitudes_pendientes': solicitudes_pendientes})
+
+def aprobar_solicitud(request, solicitud_id):
+    if not request.user.is_authenticated or not request.user.adminprovincial:
+        return HttpResponseForbidden("No tienes permisos para realizar esta acción.")
+    
+    solicitud = get_object_or_404(SolicitudAprobacion, pk=solicitud_id)
+    solicitud.aprobado = True
+    solicitud.aprobado_por = request.user.adminprovincial
+    solicitud.save()
+    return redirect('lista_solicitudes_pendientes')
+
+def rechazar_solicitud(request, solicitud_id):
+    if not request.user.is_authenticated or not request.user.adminprovincial:
+        return HttpResponseForbidden("No tienes permisos para realizar esta acción.")
+    
+    solicitud = get_object_or_404(SolicitudAprobacion, pk=solicitud_id)
+    solicitud.aprobado = False
+
+    solicitud.save()
+    return redirect('lista_solicitudes_pendientes')

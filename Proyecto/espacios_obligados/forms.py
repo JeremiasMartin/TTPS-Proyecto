@@ -1,5 +1,5 @@
 from django import forms
-from .models import Entidad, Sede, Provincias, DEA, HistorialDEA, Responsable
+from .models import Entidad, Sede, Provincias, DEA, HistorialDEA, Responsable, SolicitudAprobacion
 from leaflet.forms.widgets import LeafletWidget
 from django.contrib.gis.geos import Point
 from django.contrib.gis import forms as gis_forms
@@ -122,3 +122,11 @@ class ResponsableForm(forms.ModelForm):
     class Meta:
         model = Responsable
         fields = ['nombre', 'apellido', 'telefono', 'email']
+
+class SolicitudAprobacionForm(forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.all(), empty_label="Seleccione una entidad")
+    sede = forms.ModelChoiceField(queryset=Sede.objects.all(), empty_label="Seleccione una sede")
+
+    class Meta:
+        model = SolicitudAprobacion
+        fields = ['entidad', 'sede', 'motivo']
