@@ -1,0 +1,161 @@
+{% extends "ProyectoApp/app.html" %}
+{% load static %}
+{% block title %} Nueva visita {% endblock %}
+{% block custom_css %}
+
+{% endblock %}
+{% block breadcrumb %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Nueva visita</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'Dash' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'listar_espacios_obligados_certificante' %}">Listado de
+                            espacios</a></li>
+                    <li class="breadcrumb-item active">Nueva visita</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock breadcrumb %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- general form elements -->
+            <div class="card card-secondary">
+                <div class="card-header">
+                    <h3 class="card-title">{{ espacio_obligado.sede.nombre }}</h3>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <p class="text-muted text-sm">
+                        <b>Cant. Personas externas: </b>
+                        {{ espacio_obligado.sede.cant_personas_externas }}
+                        <br>
+                        <b>Estado: </b>
+                        {{ espacio_obligado.estado }}
+                        <br>
+                        <b>Superficie: </b>
+                        {{ espacio_obligado.sede.superficie }}
+                        <br>
+                        <b>Dirección: </b>
+                        {{ espacio_obligado.sede.direccion }}
+                        <br>
+                        <b>Provincia: </b>
+                        {{ espacio_obligado.sede.provincia }}
+                        <br>
+                        <b>Razon Social: </b>
+                        {{ espacio_obligado.sede.entidad.razon_social }}
+                        <br>
+                        <b>Cuit: </b>
+                        {{ espacio_obligado.sede.entidad.cuit }}
+                    </p>
+                </div>
+            </div>
+            <!-- /.card -->
+        </div>
+        <div class="col-md-3">
+            <!-- general form elements -->
+            <div class="card card-secondary">
+                <div class="card-header">
+                    <h3 class="card-title">Declaración Jurada</h3>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <p class="text-muted text-sm">
+                        <b>Personal capacitado: </b>
+                        {% if espacio_obligado.sede.personal_capacitado %}
+                        Si
+                        {% else %}
+                        No
+                        {% endif %}
+                        <br>
+
+                        <b>Señaletica: </b>
+                        {% if espacio_obligado.sede.senaletica %}
+                        Si
+                        {% else %}
+                        No
+                        {% endif %}
+                        <br>
+
+                        <b>Protocolo Acción: </b>
+                        {% if espacio_obligado.sede.protocolo_accion %}
+                        Si
+                        {% else %}
+                        No
+                        {% endif %}
+                        <br>
+
+                        <b>Sistema Emergencia: </b>
+                        {% if espacio_obligado.sede.sistema_emergencia %}
+                        Si
+                        {% else %}
+                        No
+                        {% endif %}
+                        <br>
+
+                        <b>Deas registrados: </b>
+                        {{ espacio_obligado.sede.deas_registrados.count }}
+                        <br>
+
+                        <b>Deas decreto: </b>
+                        {{ espacio_obligado.sede.deas_decreto }}
+                        <br>
+
+                        <b>Entidad: </b>
+                        {{ espacio_obligado.sede.entidad.razon_social }}
+                        <br>
+                    </p>
+                </div>
+            </div>
+            <!-- /.card -->
+        </div>
+        <!-- left column -->
+        <div class="col-md-6">
+            <!-- general form elements -->
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Registrar Visita</h3>
+                </div>
+                <!-- /.card-header -->
+                <!-- form start -->
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="exampleInputFechaHora">Fecha</label>
+                            {{ form.fecha_hora }}
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleObservaciones">Observaciones</label>
+                            {{ form.observaciones }}
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleResultado">Resultado</label>
+                            {{ form.resultado }}
+                        </div>
+                        <input type="hidden" name="{{ espacio_obligado.id }}">
+
+                    </div>
+                    <!-- /.card-body -->
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+            <!-- /.card -->
+        </div>
+    </div>
+</div>
+
+{% endblock %}

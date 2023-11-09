@@ -34,6 +34,9 @@ urlpatterns = [
          views.editar_responsable, name='editar_responsable'),
     path('eliminar_responsable/<int:responsable_id>/',
          views.eliminar_responsable, name='eliminar_responsable'),
+     # Certificante
     path('certificante/listado_espacios_obligados', views.listar_espacios_obligados_certificante,
          name='listar_espacios_obligados_certificante'),
+     path('certificante/nueva-visita/<int:espacio_obligado_id>', views.nueva_visita, name='nueva_visita'),
+     path('certificante/visitas/espacio-obligado/<int:espacio_obligado_id>', views.listar_visitas, name='listar_visitas'),
 ]
