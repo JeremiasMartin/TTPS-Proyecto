@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect , get_object_or_404
-from .forms import AdminProvincialForm, RepresentanteForm,CustomPasswordChangeForm
-from .models import Usuario, Representante ,AdminProvincial
+from .forms import AdminProvincialForm, RepresentanteForm, UsuarioComunForm, CustomPasswordChangeForm
+from .models import Usuario, Representante ,AdminProvincial, UsuarioComun
 from espacios_obligados.models import Sede,EspacioObligado 
 import random
 from django.contrib.auth import authenticate, login, logout as django_logout
@@ -238,3 +238,57 @@ def cambiar_estado_espacio(request,sede_id):
         espacio.save()
 
     return redirect('inicioAdminProvincial')
+
+
+def usuario_comun_signup(request):
+    if request.method == 'POST':
+        form = UsuarioComunForm(request.POST)
+        if form.is_valid():
+            passwd = ''.join(random.choices(
+                'abcdefghijklmnopqrstuvwxyz0123456789', k=8))
+            email = form.cleaned_data['email']
+            nombre = form.cleaned_data['nombre']
+            apellido = form.cleaned_data['apellido']
+            dni = form.cleaned_data['dni']
+            telefono = form.cleaned_data['telefono']
+
+            usuario = Usuario.objects.create_user(
+                email=email,
+                nombre=nombre,
+                apellido=apellido,
+                dni=dni,
+                telefono=telefono,
+                password=passwd
+            )
+
+            usuarioComun = UsuarioComun.objects.create(
+                user=usuario,
+            )
+
+            subject = '[ResucitAR] Registro de Usuario Exitoso'
+            from_email = 'ResucitAR <%s>' % (settings.EMAIL_HOST_USER)
+            to_email = '%s' % (form.cleaned_data.get('email'))
+            reply_to_email = 'noreply@resucitar.com'
+
+            context = {
+                'nombre': form.cleaned_data.get('nombre'),
+                'password': passwd
+            }
+            text_content = get_template('usuario/mail_bienvenida.txt')
+            html_content = get_template('usuario/mail_bienvenida.html')
+            text_content = text_content.render(context)
+            html_content = html_content.render(context)
+
+            email = EmailMultiAlternatives(subject, text_content, from_email, to=[
+                                           to_email,], reply_to=[reply_to_email,])
+            email.mixed_subtype = 'related'
+            email.content_subtype = 'html'
+            email.attach_alternative(html_content, 'text/html')
+            email.send(fail_silently=False)
+            messages.success(
+                request, 'Registro exitoso. Verifique su correo electronico para obtener su contraseña.')
+
+            return redirect('login')
+    else:
+        form = UsuarioComunForm()
+    return render(request, 'representante/form_representante.html', {'form': form})

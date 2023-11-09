@@ -18,4 +18,5 @@ urlpatterns = [
     path('inicioAdminProvincial/',views.inicioAdminProvincial,name='inicioAdminProvincial'),
     path('registroAdminProvincial/', views.adminProvincial_signup, name='registroAdminProvincial'),
     path('cambiar_estado_espacio/<int:sede_id>/', views.cambiar_estado_espacio, name='cambiar_estado_espacio'),
+    path('registro_usuario_comun', views.usuario_comun_signup, name='registro_usuario_comun'),
 ]
