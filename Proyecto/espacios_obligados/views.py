@@ -57,7 +57,9 @@ def listar_mis_entidades_sedes(request):
 
     entidades_sedes = Sede.objects.filter(representantes=representante)
 
-    return render(request, 'listar_mis_entidades_sedes.html', {'entidades_sedes': entidades_sedes})
+    sedes_aprobadas = EspacioObligado.objects.filter(sede__in=entidades_sedes).exclude(estado='Rechazado') # Capturo las sedes que hayan sido aprobadas (ya son espacios obligados) y su estado no sea "Rechazado"
+
+    return render(request, 'listar_mis_entidades_sedes.html', {'entidades_sedes': sedes_aprobadas})
 
 
 def administrar_entidad_sede(request, sede_id):
@@ -91,6 +93,13 @@ def declaracion_jurada(request, sede_id):
         if form.is_valid():
             ddjj = form.save(commit=False)
             ddjj.save()
+            sede_espacio = EspacioObligado.objects.get(sede=sede) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
+            deas = DEA.objects.filter(dea_sede=sede) # Capturo los deas registrados de la sede para chequear si coinciden con lo declarado en la ddjj
+            if ((ddjj.personal_capacitado and ddjj.senaletica and ddjj.protocolo_accion and ddjj.sistema_emergencia) and ddjj.deas_decreto <= len(deas)):
+                sede_espacio.estado = "Cardio Asistido"
+            else:
+                sede_espacio.estado = "En Proceso"
+            sede_espacio.save()
             return redirect('listar_mis_entidades_sedes')
     else:
         form = DeclaracionJuradaForm(instance=sede)
@@ -132,6 +141,15 @@ def registrar_dea(request, sede_id):
             dea.dea_sede = sede
             dea.save()
             sede.deas_registrados.add(dea)
+
+            deas = DEA.objects.filter(dea_sede=sede) # Capturo los deas registrados de la sede para chequear si coinciden con lo declarado en la ddjj
+            sede_espacio = EspacioObligado.objects.get(sede=sede) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
+            # Chequeo que la cantidad de deas registrados coincida con la cantidad declarada en la ddjj
+            if ((sede.personal_capacitado and sede.senaletica and sede.protocolo_accion and sede.sistema_emergencia) and sede.deas_decreto <= len(deas)):
+                sede_espacio.estado = "Cardio Asistido"
+                sede_espacio.save()
+
+
             return redirect('listar_deas', sede_id=sede.id)
 
     else:
@@ -186,13 +204,34 @@ def editar_dea(request, dea_id):
     return render(request, 'dea/editar_dea.html', {'form': form, 'sede':sede_id, 'dea': dea})
 
 
+def activar_dea(request, dea_id):
+    dea = DEA.objects.get(id=dea_id)
+    dea.estado = 'activo'
+    dea.save()
+    return redirect('listar_deas', sede_id=dea.dea_sede.id)
 
+def desactivar_dea(request, dea_id):
+    dea = DEA.objects.get(id=dea_id)
+    dea.estado = 'inactivo'
+    dea.save()
+    return redirect('listar_deas', sede_id=dea.dea_sede.id)
     
 def eliminar_dea(request, dea_id):
     dea = DEA.objects.get(id=dea_id)
     sede_id = dea.dea_sede.id
     if request.method == 'POST':
         dea.delete()
+
+        deas = DEA.objects.filter(dea_sede__id=sede_id) # Capturo los deas registrados de la sede para chequear si coinciden con lo declarado en la ddjj
+        sede_espacio = EspacioObligado.objects.get(sede__id=sede_id) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
+        # Chequeo que la cantidad de deas registrados coincida con la cantidad declarada en la ddjj
+        if((sede_espacio.sede.personal_capacitado and sede_espacio.sede.senaletica and sede_espacio.sede.protocolo_accion and sede_espacio.sede.sistema_emergencia) and sede_espacio.sede.deas_decreto <= len(deas)):
+            sede_espacio.estado = "Cardio Asistido"
+        else:
+            sede_espacio.estado = "En Proceso"
+        sede_espacio.save()
+        
+
         return redirect('listar_deas', sede_id=sede_id)
     return render(request, 'dea/eliminar_dea.html', {'dea': dea, 'sede': sede_id})
 
@@ -222,6 +261,11 @@ def listar_mantenimientos_dea(request, dea_id):
     sede = dea.dea_sede
     mantenimientos = HistorialDEA.objects.filter(dea=dea, servicio='Mantenimiento')
     return render(request, 'dea/listar_mantenimientos.html', {'dea': dea, 'mantenimientos': mantenimientos, 'sede': sede})
+
+
+def listar_deas_activos(request):
+    deas = DEA.objects.filter(estado='activo')
+    return render(request, 'mapa.html', {'deas': deas})
 
 
 
