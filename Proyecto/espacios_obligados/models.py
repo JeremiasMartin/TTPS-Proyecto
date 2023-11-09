@@ -57,7 +57,7 @@ class DEA(models.Model):
     estado = models.CharField(max_length=10, choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')], default='activo')
 
     def __str__(self):
-        return self.sede.nombre
+        return self.nombre_representativo
     
 
 class HistorialDEA(models.Model):
