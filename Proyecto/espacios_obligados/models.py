@@ -79,3 +79,14 @@ class Responsable(models.Model):
 
     def __str__(self):
         return self.nombre + " " + self.apellido
+
+
+class Visita(models.Model):
+    fecha_hora = models.DateTimeField()
+    observaciones = models.TextField()
+    resultado = models.CharField(max_length=20, choices=[('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')])
+    espacio_obligado_id = models.IntegerField()
+    certificante_id = models.IntegerField()
+
+    def __str__(self):
+        return self.fecha_hora

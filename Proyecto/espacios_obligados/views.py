@@ -281,3 +281,22 @@ def listar_espacios_obligados_certificante(request):
     print(espacios_obligados)
 
     return render(request, 'certificante/listar_espacios_obligados.html', {'espacios_obligados': espacios_obligados})
+
+def nueva_visita(request, espacio_obligado_id):
+    if request.method == "POST":
+        form = VisitaForm(request.POST)
+        if form.is_valid():
+            visita = form.save(commit=False)
+            visita.espacio_obligado_id = espacio_obligado_id
+            visita.certificante_id = request.user.id
+            visita.save()
+            return redirect('listar_espacios_obligados_certificante')
+    else:
+        form = VisitaForm()
+    espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
+    
+    return render(request, 'certificante/nueva_visita.html', {'form': form, 'espacio_obligado': espacio_obligado})
+
+def listar_visitas(request, espacio_obligado_id):
+    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id)
+    return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})

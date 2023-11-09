@@ -107,11 +107,11 @@
                     </div>
                     <div class="card-footer">
                         <div class="text-right">
-                            <a href="#" class="btn btn-sm bg-teal">
-                                <i class="fas fa-comments"></i>
+                            <a href="{% url 'listar_visitas' espacio_obligado.id %}" class="btn btn-sm bg-teal">
+                                <i class="fas fa-clipboard-list"></i> Listar visitas
                             </a>
-                            <a href="#" class="btn btn-sm btn-primary">
-                                <i class="fas fa-user"></i> View Profile
+                            <a href="{% url 'nueva_visita' espacio_obligado.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Registrar visita
                             </a>
                         </div>
                     </div>
