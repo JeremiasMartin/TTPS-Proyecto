@@ -48,25 +48,20 @@
 </style>
 {% endblock custom_css %}
 
-{% block breadcrumb %}
-<section class="content-header">
-  <div class="container-fluid">
-      <div class="row mb-2">
-          <div class="col-sm-6">
-              <h1>Dashboard</h1>
-          </div>
-          <div class="col-sm-6">
-              <ol class="breadcrumb float-sm-right">
-                  <li class="breadcrumb-item active">Dashboard</li>
-              </ol>
-          </div>
-      </div>
-  </div>
-</section>
-{% endblock breadcrumb %}
-
 {% block content %}
-  <div id="map-container"></div>
+{% if user.tipo_usuario == 'comun' %}
+<div style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 500px;">
+  <a href="{% static 'ProyectoApp/media/rcp.mp3' %}" class="btn btn-danger" style="height: 100px; width: 100px; margin-bottom: 10px;">Urgencia</a>
+  <div style="display: flex; flex-direction: row;">
+      <a href="{% static 'ProyectoApp/media/rcp.mp3' %}" class="btn btn-primary" style="width: 300px; margin-right: 10px;">Buscar DEA libre</a>
+      <button class="btn btn-success" style="width: 300px;" onclick="toggleAudio()">¿Cómo realizar RCP?</button>
+  </div>
+  <audio id="audioPlayer" controls style="width: 300px; display: none;">
+      <source src="{% static 'ProyectoApp/media/rcp.mp3' %}" type="audio/mpeg">
+      Tu navegador no admite la reproducción de audio.
+  </audio>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block custom_js %}
@@ -81,5 +76,23 @@
       maxZoom: 20,
     }).addTo(map);
   });
+
+
+    var audioPlayer = document.getElementById('audioPlayer');
+    var playButton = document.querySelector('button');
+    
+    audioPlayer.onended = function () {
+        playButton.textContent = 'Reproducir';
+    };
+    
+    function toggleAudio() {
+        if (audioPlayer.paused) {
+            audioPlayer.play();
+            playButton.textContent = 'Pausar';
+        } else {
+            audioPlayer.pause();
+            playButton.textContent = '¿Como realizar RCP?';
+        }
+    }
 </script>
 {% endblock custom_js %}
