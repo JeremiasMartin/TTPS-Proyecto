@@ -1,4 +1,5 @@
 {% extends "ProyectoApp/base.html" %}
+{% load static %}
 {% block content %}
   <h1>Sedes de {{ entidad.nombre }}</h1>
   <ul>
@@ -6,6 +7,6 @@
       <li>{{ sede.nombre }}</li>
     {% endfor %}
   </ul>
-  <a href="{% url 'registrar_sede' entidad.id %}">Registrar Nueva Sede</a>
-  <a href="{% url 'registrar_entidad' %}">Volver a Registrar Entidad</a>
+  <a href="{% url 'registrar_sede' entidad.id %}" class="btn btn-primary">Registrar Nueva Sede para {{ entidad }}</a>
+  <a href="{% url 'registrar_entidad' %}" class="btn btn-primary">Volver a Registrar Entidad</a>
 {% endblock %}

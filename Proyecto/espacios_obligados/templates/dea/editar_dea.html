@@ -10,7 +10,8 @@
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
+    <a href="{% url 'listar_deas' sede %}" class="btn btn-primary">Atrás</a>
     <button type="submit" class="btn btn-primary">Guardar Cambios</button>
 </form>
-<a href="{% url 'listar_deas' sede %}" class="btn btn-primary">Atrás</a>
+
 {% endblock %}
