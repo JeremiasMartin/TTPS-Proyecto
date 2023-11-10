@@ -23,9 +23,11 @@
 {% endblock breadcrumb %}
 
 {% block content %}
+{{ block.super }}
 <!-- Default box -->
 <div class="card card-solid">
     <div class="card-body pb-0">
+        {% if espacios_obligados %}
         <div class="row">
             {% for espacio_obligado in espacios_obligados %}
             <div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch flex-column">
@@ -119,6 +121,12 @@
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <div class="alert alert-info alert-dismissible">
+            <h5><i class="icon fas fa-info"></i> No hay espacios obligados registrados</h5>
+            <p>No existen espacios obligados asociados a su provincia.</p>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

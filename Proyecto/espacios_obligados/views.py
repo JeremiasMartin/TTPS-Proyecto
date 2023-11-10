@@ -6,6 +6,7 @@ from usuarios.models import Representante, Certificante
 import requests
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 
 # Create your views here.
 
@@ -341,6 +342,10 @@ def nueva_visita(request, espacio_obligado_id):
             if visita.resultado == 'aprobado':
                 espacio_obligado.estado = 'CARDIO ASISTIDO CERTIFICADO'
                 espacio_obligado.save()
+            else:
+                espacio_obligado.estado = 'CARDIO ASISTIDO'
+                espacio_obligado.save()
+            messages.success(request, 'Visita registrada correctamente.')
             return redirect('listar_espacios_obligados_certificante')
     else:
         form = VisitaForm()
@@ -349,7 +354,7 @@ def nueva_visita(request, espacio_obligado_id):
     return render(request, 'certificante/nueva_visita.html', {'form': form, 'espacio_obligado': espacio_obligado})
 
 def listar_visitas(request, espacio_obligado_id):
-    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id)
+    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id).order_by('-fecha_hora')
     return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})
 
 
@@ -360,5 +365,6 @@ def eliminar_visita(request, visita_id):
         espacio_obligado.estado = 'CARDIO ASISTIDO'
         espacio_obligado.save()
         visita.delete()
+    messages.success(request, 'Visita eliminada correctamente.')
     return redirect('listar_visitas', espacio_obligado_id=visita.espacio_obligado_id.id)
     
