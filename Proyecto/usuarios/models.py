@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.gis.db import models as gis_models
 
 
 class UsuarioManager(BaseUserManager):
@@ -122,6 +123,25 @@ class AdminProvincial(models.Model):
         super().save(*args, **kwargs)
 
 
+
+class UsuarioComun(models.Model):
+    user = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    usuario_comun_id = models.AutoField(primary_key=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'usuario_comun'
+        db_table = 'usuarios_comunes'
+          
+    def __str__(self) -> str:
+        return '%s, %s' % (self.user.apellido, self.user.nombre)
+      
+    def save(self, *args, **kwargs):
+        self.user.tipo_usuario = 'comun'
+        self.user.save()
+        super().save(*args, **kwargs)
+
+        
 class Certificante(models.Model):
     user = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     certificante_id = models.AutoField(primary_key=True)
@@ -133,10 +153,15 @@ class Certificante(models.Model):
         verbose_name = 'certificante'
         db_table = 'certificantes'
 
+
     def __str__(self) -> str:
         return '%s, %s' % (self.user.apellido, self.user.nombre)
 
     def save(self, *args, **kwargs):
+        self.user.tipo_usuario = 'comun'
+        self.user.save()
+        super().save(*args, **kwargs)
+    
         self.user.tipo_usuario = 'certificante'
         self.user.save()
         super().save(*args, **kwargs)

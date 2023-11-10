@@ -30,7 +30,7 @@
         <label for="{{ form.deas_decreto.id_for_label }}">Teniendo en cuenta el decreto reglamentario, ¿Cuántos DEAs le corresponden a su establecimiento?</label>
         {{ form.deas_decreto }}
     </div>
-    <button type="submit">Guardar Cambios</button>
+    <a href="{% url 'administrar_entidad_sede' sede.id %}" class="btn btn-primary">Atrás</a>
+    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
 </form>
-<a href="{% url 'administrar_entidad_sede' sede.id %}">Atrás</a>
 {% endblock %}

@@ -70,7 +70,9 @@
                             </li>
                             {# Menu Footer#}
                             <li class="user-footer">
+                                {% if user.tipo_usuario == 'representante' %}
                                 <a href="{% url 'perfil_representante' %}" class="btn btn-default btn-flat">Perfil</a>
+                                {% endif %}
                                 <a href="{% url 'logout' %}" class="btn btn-default btn-flat float-right">Salir</a>
                             </li>
                         </ul>

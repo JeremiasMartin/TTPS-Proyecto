@@ -191,7 +191,49 @@ class AdminProvincialForm(forms.ModelForm):
         return adminProvincial
 
 
+
+class UsuarioComunForm(forms.ModelForm):
+  
+    class Meta:
+        model = Usuario
+        fields = ['dni', 'nombre', 'apellido', 'telefono', 'email']
+
+    def __init__(self, *args, **kwargs):
+        super(UsuarioComunForm, self).__init__(*args, **kwargs)
+
+        self.fields['nombre'] = forms.CharField(required=True, label=force_str(
+            "Nombre"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su nombre', 'class': 'form-control'}))
+
+        self.fields['apellido'] = forms.CharField(required=True, label=force_str(
+            "Apellido"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su apellido', 'class': 'form-control'}))
+
+        self.fields['email'] = forms.EmailField(required=True, label=force_str(
+            "Correo electrónico"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su correo electrónico', 'class': 'form-control'}))
+
+        self.fields['dni'] = forms.IntegerField(required=True, label=force_str(
+            "DNI"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su DNI', 'class': 'form-control', 'type': 'number'}))
+
+        self.fields['telefono'] = forms.IntegerField(required=True, label=force_str(
+            "Teléfono"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su teléfono', 'class': 'form-control', 'type': 'number'}))
+        
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if Usuario.objects.filter(email=email).exists():
+            raise forms.ValidationError(
+                'Este correo electrónico ya está en uso. Prueba con otro')
+        return email
+
+    def clean_dni(self):
+        dni = self.cleaned_data.get('dni')
+        if Usuario.objects.filter(dni=dni).exists():
+            raise forms.ValidationError(
+                'Este DNI ya está en uso. Prueba con otro')
+        return dni
+
+      
 class CertificanteForm(forms.ModelForm):
+  
     class Meta:
         model = Usuario
         fields = ['dni', 'nombre', 'apellido', 'telefono', 'email']
