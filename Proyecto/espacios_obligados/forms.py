@@ -124,9 +124,24 @@ class ResponsableForm(forms.ModelForm):
         fields = ['nombre', 'apellido', 'telefono', 'email']
 
 class SolicitudAprobacionForm(forms.ModelForm):
-    entidad = forms.ModelChoiceField(queryset=Entidad.objects.all(), empty_label="Seleccione una entidad")
-    sede = forms.ModelChoiceField(queryset=Sede.objects.all(), empty_label="Seleccione una sede")
+    entidad_sede = forms.ChoiceField(choices=(), required=True)
 
     class Meta:
         model = SolicitudAprobacion
-        fields = ['entidad', 'sede', 'motivo']
+        fields = ['entidad_sede', 'motivo']
+
+    def __init__(self, *args, **kwargs):
+        super(SolicitudAprobacionForm, self).__init__(*args, **kwargs)
+
+        opciones_entidad_sede = []
+
+        for sede in Sede.objects.all():
+            opciones_entidad_sede.append((f'{sede.id}', f'{sede.entidad.razon_social} - {sede.nombre}'))
+
+        self.fields['entidad_sede'].choices = opciones_entidad_sede
+
+    def clean_entidad_sede(self):
+        sede_id = self.cleaned_data['entidad_sede']
+        return sede_id  # Devolvemos el ID como cadena
+    
+    

@@ -267,37 +267,34 @@ def eliminar_responsable(request, responsable_id):
     return render(request, 'responsable/eliminar_responsable.html', {'responsable': responsable, 'sede': sede_id})
 
 def solicitud_aprobacion(request):
-    show_alert = False
-    show_submit_alert = True
+    ok=True
     if request.method == 'POST':
         form = SolicitudAprobacionForm(request.POST)
         if form.is_valid():
             representante = request.user.representante
-            entidad = form.cleaned_data['entidad']
-            sede = form.cleaned_data['sede']
+            sede_id = form.cleaned_data['entidad_sede']  # Obtener el ID de la sede
+            sede = Sede.objects.get(id=sede_id)  # Obtener la instancia de la sede
             motivo = form.cleaned_data['motivo']
             
             # Verificar si ya existe una solicitud con la misma entidad y sede
-            if SolicitudAprobacion.objects.filter(entidad=entidad, sede=sede).exists():
+            if SolicitudAprobacion.objects.filter(entidad=sede.entidad, sede=sede).exists():
                 # Mostrar un mensaje de error
-                show_alert = True
-                show_submit_alert=False
-                messages.error(request, 'Ya has solicitado para esta entidad y sede.')
-                return render(request, 'solicitud_aprobacion.html', {'form': form, 'show_alert': show_alert, 'show_submit_alert': show_submit_alert})
+                ok=False
+                mensaje = "Ya hay una solicitud de aprobación para la entidad-sede"
+                return render(request, 'solicitud_aprobacion.html', {'form': form, 'mensaje':mensaje})
             
             solicitud_aprobacion = SolicitudAprobacion(
                 representante=representante, 
-                entidad=entidad, 
+                entidad=sede.entidad, 
                 sede=sede, 
                 motivo=motivo
             )
             solicitud_aprobacion.save() 
             return redirect('/dash')
-            
     else:
         form = SolicitudAprobacionForm()
 
-    return render(request, 'solicitud_aprobacion.html', {'form': form, 'show_alert': show_alert, 'show_submit_alert': True})
+    return render(request, 'solicitud_aprobacion.html', {'form': form})
 
 
 

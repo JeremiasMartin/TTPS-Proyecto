@@ -9,22 +9,8 @@
     <button type="submit">Enviar Solicitud</button>
 </form>
 
-{% if show_alert %}
-    <script>
-        alert("Ya has solicitado para esta entidad y sede.");
-        window.location.href = "/dash";
-    </script>
+{% if mensaje %}
+    {{mensaje}}
+    
 {% endif %}
-
-{% if show_submit_alert %}
-    <script>
-        //entra porque sí 
-        document.getElementById("solicitudForm").addEventListener("submit", function(event) {
-            event.preventDefault(); 
-            alert("La solicitud se envió correctamente.");
-            this.submit();
-        });
-    </script>
-{% endif %}
-
 {% endblock %}
