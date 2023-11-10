@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
 from .forms import *
 from django.contrib import messages
@@ -7,6 +7,7 @@ from usuarios.models import Representante, Certificante
 import requests
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 
 # Create your views here.
 
@@ -383,72 +384,7 @@ def rechazar_solicitud(request, solicitud_id):
     solicitud.save()
     return redirect('lista_solicitudes_pendientes')
 
-def listar_espacios_obligados_certificante(request):
-    certificante = Certificante.objects.get(user=request.user)
-    certificante_provincias = certificante.provincias.all()
 
-    espacios_obligados = []
-    for provincia in certificante_provincias:
-        espacios = EspacioObligado.objects.filter(sede__provincia=provincia)
-        # Agrega los espacios obligados a la lista
-        espacios_obligados.extend(espacios)
-
-    print(espacios_obligados)
-
-    return render(request, 'certificante/listar_espacios_obligados.html', {'espacios_obligados': espacios_obligados})
-
-def nueva_visita(request, espacio_obligado_id):
-    if request.method == "POST":
-        form = VisitaForm(request.POST)
-        if form.is_valid():
-            visita = form.save(commit=False)
-            visita.espacio_obligado_id = espacio_obligado_id
-            visita.certificante_id = request.user.id
-            visita.save()
-            return redirect('listar_espacios_obligados_certificante')
-    else:
-        form = VisitaForm()
-    espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
-    
-    return render(request, 'certificante/nueva_visita.html', {'form': form, 'espacio_obligado': espacio_obligado})
-
-def listar_visitas(request, espacio_obligado_id):
-    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id)
-    return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})
-
-
-def listar_espacios_obligados_certificante(request):
-    certificante = Certificante.objects.get(user=request.user)
-    certificante_provincias = certificante.provincias.all()
-
-    espacios_obligados = []
-    for provincia in certificante_provincias:
-        espacios = EspacioObligado.objects.filter(sede__provincia=provincia)
-        # Agrega los espacios obligados a la lista
-        espacios_obligados.extend(espacios)
-
-    print(espacios_obligados)
-
-    return render(request, 'certificante/listar_espacios_obligados.html', {'espacios_obligados': espacios_obligados})
-
-def nueva_visita(request, espacio_obligado_id):
-    if request.method == "POST":
-        form = VisitaForm(request.POST)
-        if form.is_valid():
-            visita = form.save(commit=False)
-            visita.espacio_obligado_id = espacio_obligado_id
-            visita.certificante_id = request.user.id
-            visita.save()
-            return redirect('listar_espacios_obligados_certificante')
-    else:
-        form = VisitaForm()
-    espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
-    
-    return render(request, 'certificante/nueva_visita.html', {'form': form, 'espacio_obligado': espacio_obligado})
-
-def listar_visitas(request, espacio_obligado_id):
-    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id)
-    return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})
 def solicitud_aprobacion(request):
 
     if request.method == 'POST':
@@ -498,22 +434,56 @@ def lista_solicitudes_pendientes(request):
     solicitudes_pendientes = SolicitudAprobacion.objects.filter(aprobado=False)
     return render(request, 'lista_solicitudes_pendientes.html', {'solicitudes_pendientes': solicitudes_pendientes})
 
-def aprobar_solicitud(request, solicitud_id):
-    if not request.user.is_authenticated or not request.user.adminprovincial:
-        return HttpResponseForbidden("No tienes permisos para realizar esta acción.")
-    
-    solicitud = get_object_or_404(SolicitudAprobacion, pk=solicitud_id)
-    solicitud.aprobado = True
-    solicitud.aprobado_por = request.user.adminprovincial
-    solicitud.save()
-    return redirect('lista_solicitudes_pendientes')
+# MODULO CERTIFICANTE
+def listar_espacios_obligados_certificante(request):
+    certificante = Certificante.objects.get(user=request.user)
+    certificante_provincias = certificante.provincias.all()
 
-def rechazar_solicitud(request, solicitud_id):
-    if not request.user.is_authenticated or not request.user.adminprovincial:
-        return HttpResponseForbidden("No tienes permisos para realizar esta acción.")
-    
-    solicitud = get_object_or_404(SolicitudAprobacion, pk=solicitud_id)
-    solicitud.aprobado = False
+    espacios_obligados = []
+    for provincia in certificante_provincias:
+        espacios = EspacioObligado.objects.filter(sede__provincia=provincia)
+        # Agrega los espacios obligados a la lista
+        espacios_obligados.extend(espacios)
 
-    solicitud.save()
-    return redirect('lista_solicitudes_pendientes')
+    return render(request, 'certificante/listar_espacios_obligados.html', {'espacios_obligados': espacios_obligados})
+
+# VISITA USUARIO CERTIFICANTE
+def nueva_visita(request, espacio_obligado_id):
+    if request.method == "POST":
+        form = VisitaForm(request.POST)
+        if form.is_valid():
+            visita = form.save(commit=False)
+            espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
+            visita.espacio_obligado_id = espacio_obligado
+            certificante = Certificante.objects.get(user=request.user)
+            visita.certificante_id = certificante
+            visita.save()
+            if visita.resultado == 'aprobado':
+                espacio_obligado.estado = 'CARDIO ASISTIDO CERTIFICADO'
+                espacio_obligado.save()
+            else:
+                espacio_obligado.estado = 'CARDIO ASISTIDO'
+                espacio_obligado.save()
+            messages.success(request, 'Visita registrada correctamente.')
+            return redirect('listar_espacios_obligados_certificante')
+    else:
+        form = VisitaForm()
+    espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
+    
+    return render(request, 'certificante/nueva_visita.html', {'form': form, 'espacio_obligado': espacio_obligado})
+
+def listar_visitas(request, espacio_obligado_id):
+    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id).order_by('-fecha_hora')
+    return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})
+
+
+def eliminar_visita(request, visita_id):
+    visita = Visita.objects.get(id=visita_id)
+    if request.method == 'POST':
+        espacio_obligado = EspacioObligado.objects.get(id=visita.espacio_obligado_id.id)
+        espacio_obligado.estado = 'CARDIO ASISTIDO'
+        espacio_obligado.save()
+        visita.delete()
+    messages.success(request, 'Visita eliminada correctamente.')
+    return redirect('listar_visitas', espacio_obligado_id=visita.espacio_obligado_id.id)
+    

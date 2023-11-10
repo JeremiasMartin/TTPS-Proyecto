@@ -98,6 +98,3 @@ class Visita(models.Model):
     resultado = models.CharField(max_length=20, choices=[('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')])
     espacio_obligado_id = models.ForeignKey(EspacioObligado, on_delete=models.CASCADE)
     certificante_id = models.ForeignKey(Certificante, on_delete=models.CASCADE, null=True, blank=True)
-
-    def __str__(self):
-        return self.fecha_hora
