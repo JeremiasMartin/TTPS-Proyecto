@@ -158,10 +158,6 @@ class Certificante(models.Model):
         return '%s, %s' % (self.user.apellido, self.user.nombre)
 
     def save(self, *args, **kwargs):
-        self.user.tipo_usuario = 'comun'
-        self.user.save()
-        super().save(*args, **kwargs)
-    
         self.user.tipo_usuario = 'certificante'
         self.user.save()
         super().save(*args, **kwargs)
