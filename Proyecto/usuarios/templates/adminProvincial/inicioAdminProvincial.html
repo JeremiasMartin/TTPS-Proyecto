@@ -1,0 +1,56 @@
+{% extends "ProyectoApp/base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+
+<head>
+    <title>Página de Inicio del Administrador Provincial</title>
+</head>
+<body>
+    <h1>Bienvenido al Administrador Provincial</h1>
+    <!-- Agrega el contenido de la página aquí -->
+    <h2>Admin : {{admin}} 
+        <br> Provincias
+    </h2>
+    <h4>
+        {% for provincia in provincias %}
+        <li>{{provincia}}</li>
+        {% endfor %}
+    </h4>
+    <h2>Espacios nuevos a aprobar</h2>
+
+    {% for espacio in espacios %}
+    <li>
+        {{ espacio }}
+        <form action="{% url 'cambiar_estado_espacio' espacio.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="aprobar">
+            <button type="submit">Aprobar</button>
+        </form>
+        <form action="{% url 'cambiar_estado_espacio' espacio.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="rechazar">
+            <button type="button" onclick="showInputField(this)">Rechazar</button>
+            <div id="inputField" style="display:none;">
+                <input type="text" name="reason" placeholder="Escribe la razón aquí...">
+                <button type="submit">Enviar</button>
+            </div>
+        </form>
+    </li>
+    
+    {% endfor %}
+    <h2>Espacios existentes a aprobar</h2>
+
+
+<script>
+    function showInputField(button) {
+    var inputField = button.nextElementSibling;
+    inputField.style.display = "block";
+}
+</script>
+</body>
+</html>
+{% endblock %}
+

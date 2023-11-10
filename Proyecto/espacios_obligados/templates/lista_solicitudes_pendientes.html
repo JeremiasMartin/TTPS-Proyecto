@@ -1,0 +1,19 @@
+{% extends "ProyectoApp/base.html" %}
+{% block content %}
+
+{% for solicitud in solicitudes_pendientes %}
+    <div>
+        <p>El Representante: <b>{{ solicitud.representante.user.nombre }} {{ solicitud.representante.user.apellido }}</b>
+        solicita representar el espacio <b>{{solicitud.entidad.nombre}}{{solicitud.sede.nombre}}</b> por el siguiente motivo:{{ solicitud.motivo }}</p>
+        <form action="{% url 'aprobar_solicitud' solicitud.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">Aprobar</button>
+        </form>
+        <form action="{% url 'rechazar_solicitud' solicitud.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">Rechazar</button>
+        </form>
+    </div>
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "ProyectoApp/base.html" %}
+{% block content %}
+<style>
+    .form-check-input[type="checkbox"] {
+        margin-left: 10px;
+    }
+</style>
+<h2>Registrar DEA</h2>
+
+  <form method="post" id="formulario_dea">
+    {% csrf_token %}
+    <div>
+      <label for="id_marca">Marca:</label>
+      <select name="marca" id="id_marca" class="form-select form-control">
+        <option value="">Selecciona una marca</option>
+        {% for marca in marcas %}
+          <option value="{{ marca.id }}">{{ marca.marca }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="id_modelo">Modelo:</label>
+      <select name="modelo" id="id_modelo" class="form-select form-control">
+        <option value="">Selecciona una marca primero</option>
+      </select>
+    </div>
+    <div>
+        <label for="id_numero_serie">Número de Serie:</label>
+        <input type="text" name="numero_serie" id="id_numero_serie" class="form-control">
+      </div>
+      <div>
+        <label for="id_nombre_representativo">Nombre Representativo:</label>
+        <input type="text" name="nombre_representativo" id="id_nombre_representativo" class="form-control">
+      </div>
+      <div>
+        <label for="id_solidario">Solidario:</label>
+        <input type="checkbox" name="solidario" id="id_solidario" class="form-check-input">
+      </div>
+
+    <a href="{% url 'listar_deas' sede.id %}" class="btn btn-secondary">Volver</a>
+    <button type="submit" class="btn btn-primary">Registrar DEA</button>
+  </form>
+  
+  <script>
+
+    function getCookie(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        var cookies = document.cookie.split(";");
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === name + "=") {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    document.getElementById("id_marca").addEventListener("change", function() {
+      actualizarOpcionesModelo(this.value);
+    });
+
+    function actualizarOpcionesModelo(marcaSeleccionada) {
+      const modeloSelect = document.getElementById("id_modelo");
+      modeloSelect.innerHTML = "";
+
+      if (marcaSeleccionada) {
+        fetch('/espacios/cargar_modelos/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),  // Obtén el token CSRF con la función getCookie
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `marca=${marcaSeleccionada}`,
+        })
+          .then(response => response.json())
+          .then(data => {
+            const modelos = data.modelos;
+
+            modelos.forEach(function(modelo) {
+              const option = document.createElement("option");
+              option.text = modelo;
+              option.value = modelo;
+              modeloSelect.add(option);
+            });
+          });
+      } else {
+        const option = document.createElement("option");
+        option.text = "Selecciona una marca primero";
+        option.value = "";
+        modeloSelect.add(option);
+      }
+    }
+  </script>
+</div>
+{% endblock %}

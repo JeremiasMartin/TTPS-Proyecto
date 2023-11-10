@@ -1,0 +1,23 @@
+{% extends "ProyectoApp/base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<h2>Admin : {{admin}} 
+    <br> Provincias
+</h2>
+
+{% for provincia in provincias %}
+    <li>
+        La provincia <b>{{ provincia.nombre }} </b>tiene <b>{{ provincia.validez_certificado }}</b> días de validez
+        <form method="POST" action="{% url 'modificar_validez' provincia.provincia_id %}">
+            {% csrf_token %}
+            <input type="number" name="nuevo_validez" value="{{ provincia.validez_certificado }}">
+            <input type="submit" value="Modificar">
+        </form>
+    </li>
+{% endfor %}
+
+{% endblock %}
+

@@ -1,0 +1,28 @@
+{% extends "ProyectoApp/base.html" %}
+{% load leaflet_tags %}
+{% load static %}
+{% block content %}
+<head>
+  {% leaflet_js plugins="forms" %}
+  {% leaflet_css plugins="forms" %}
+ </head>
+
+  <h1>Registrar Sede para {{ entidad }}</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <a href="{% url 'registrar_entidad' %}" class="btn btn-primary">Atrás</a>
+    <button type="submit" class="btn btn-primary">Guardar Sede</button>
+  </form>
+  <br><br>
+  <h2>Sedes Registradas para {{ entidad.razon_social }}:</h2>
+  <ul>
+    {% for sede in sedes %}
+      <li>{{ sede.nombre }}</li>
+    {% endfor %}
+  </ul>
+
+  <div id="id_ubicacion-map" style="width: 700px; height: 400px;">{{ form.ubicacion }}</div>
+
+  {% endblock %}

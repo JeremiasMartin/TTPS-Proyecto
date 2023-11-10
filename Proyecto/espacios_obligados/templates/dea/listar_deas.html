@@ -1,0 +1,32 @@
+{% extends "ProyectoApp/base.html" %}
+{% load static %}
+{% block content %}
+<a href="{% url 'registrar_dea' sede.id %}" class="btn bg-gradient-cyan">Registrar Nuevo DEA</a>
+<div class="card-container">
+  {% for dea in deas %}
+  <div class="card">
+    <div class="card-header">
+      <h3>{{ dea.nombre_representativo }}</h3>
+    </div>
+    <div class="card-body">
+      <p>Marca: {{ dea.marca }}</p>
+      <p>Modelo: {{ dea.modelo }}</p>
+      <p>Numero de Serie: {{ dea.numero_serie }}</p>
+      <p>{% if dea.solidario %} Es solidario {% else %} No es solidario {% endif %}</p>
+      <hr>
+      <a href="{% url 'editar_dea' dea.id %}" class="btn btn-primary">Editar</a>
+      {% if dea.estado == 'activo' %}
+      <a href="{% url 'desactivar_dea' dea.id %}" class="btn btn-danger">Inactivar</a>
+      {% else %}
+      <a href="{% url 'activar_dea' dea.id %}" class="btn btn-success">Activar</a>
+      {% endif %}
+      <a href="{% url 'registrar_servicio_dea' dea.id %}" class="btn btn-primary">Registrar Reparación/Mantenimiento</a>
+      <a href="{% url 'listar_reparaciones_dea' dea.id %}" class="btn btn-primary">Ver Reparaciones</a>
+      <a href="{% url 'listar_mantenimientos_dea' dea.id %}" class="btn btn-primary">Ver Mantenimientos</a>
+      <a href="{% url 'eliminar_dea' dea.id %}" class="btn btn-danger">Eliminar</a>
+    </div>
+  </div>
+  {% endfor %}
+  <a href="{% url 'listar_mis_entidades_sedes' %}" class="btn btn-primary">Atrás</a>
+</div>
+{% endblock %}

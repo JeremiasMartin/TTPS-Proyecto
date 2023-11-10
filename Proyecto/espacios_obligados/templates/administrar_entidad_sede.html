@@ -1,0 +1,16 @@
+{% extends "ProyectoApp/base.html" %}
+{% load static %}
+{% block content %}
+<h1>Panel de Administración</h1>
+<ul class="list-group">
+    <li class="list-group-item">
+        <a href="{% url 'editar_sede' sede.id %}" class="list-group-item-action">Información de Entidad-Sede</a>
+    </li>
+    <li class="list-group-item">
+        <a href="{% url 'declaracion_jurada' sede.id %}" class="list-group-item-action">Condiciones para Espacio Cardio Asistido</a>
+    </li>
+    <li class="list-group-item">
+        <a href="{% url 'listar_deas' sede.id %}" class="list-group-item-action">Mis DEAS</a>
+    </li>
+</ul>
+{% endblock %}

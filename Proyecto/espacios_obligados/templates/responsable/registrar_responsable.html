@@ -1,0 +1,14 @@
+{% extends "ProyectoApp/base.html" %}
+{% load static %}
+{% block content %}
+
+  <h1>Registrar Responsable para {{ sede.nombre }}</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <a href="{% url 'listar_mis_entidades_sedes' %}" class="btn btn-primary">Atrás</a>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+  </form>
+
+  {% endblock %}

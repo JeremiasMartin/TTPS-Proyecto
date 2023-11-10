@@ -1,0 +1,92 @@
+{% extends "ProyectoApp/auth/auth.html" %}
+
+{% load static %}{% load crispy_forms_tags %}
+
+{% block title %} Ingresar {% endblock title %} 
+
+{% block content %}
+
+{{ block.super }}
+
+<div class="card">
+    <div class="card-body login-card-body">
+        <p class="login-box-msg">Inicia sesión para comenzar</p>
+
+        <form id="login-form" method="POST">
+            {% csrf_token %}
+            <div class="input-group mb-3">
+                {{ form.email }}
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-envelope"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group mb-3">
+                {{ form.password }}
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-lock"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary btn-block mb-2" id="submit-btn" disabled>
+                        Ingresar
+                    </button>
+
+                    <p class="small login-box-msg">¿No tienes una cuenta?</p>
+                    <a href="{% url 'registro_representante' %}" type="button" class="btn btn-info btn-block mb-2">Registrate como Representante</a>
+                    <a href="{% url 'registro_usuario_comun' %}" type="button" class="btn btn-default btn-block mb-2">Registrate como Usuario Común</a>
+                    <p class="small login-box-msg">¿No recuerdas tu contraseña? Por aquí te ayudamos</p>
+                    <a href="/usuarios/restablecer_contrasenia/" type="button" class="btn btn-info btn-block">Recuperar contraseña</a>
+                    
+                    <a href="/" type="button" class="btn btn-default btn-block mt-2">Volver</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} {% block custom_js %}
+<script>
+    const form = document.getElementById("login-form");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const submitButton = document.getElementById("submit-btn");
+
+    form.addEventListener("input", function () {
+        const isValidEmail = validateEmail(emailInput.value);
+        const isNotEmpty =
+            !isEmpty(emailInput.value) && !isEmpty(passwordInput.value);
+
+        if (isValidEmail && isNotEmpty) {
+            submitButton.disabled = false;
+        } else {
+            submitButton.disabled = true;
+        }
+    });
+
+    form.addEventListener("submit", function (event) {
+        if (!validateEmail(emailInput.value)) {
+            event.preventDefault();
+            alert("El formato de correo electrónico no es válido.");
+        } else if (isEmpty(emailInput.value) || isEmpty(passwordInput.value)) {
+            event.preventDefault();
+            alert("Por favor, completa todos los campos.");
+        }
+    });
+
+    function validateEmail(email) {
+        // Validación de formato de correo electrónico utilizando una expresión regular
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return emailPattern.test(email);
+    }
+
+    function isEmpty(value) {
+        return value.trim() === "";
+    }
+</script>
+{% endblock custom_js %}

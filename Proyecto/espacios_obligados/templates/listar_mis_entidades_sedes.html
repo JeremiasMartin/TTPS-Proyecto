@@ -1,0 +1,20 @@
+{% extends "ProyectoApp/base.html" %}
+{% block content %}
+<h1>Lista de mis Entidades-Sedes</h1>
+<br>
+    <ul>
+    {% if entidades_sedes %}
+        {% for espacio in entidades_sedes %}
+            <li>{{ espacio.sede.nombre }}</li>
+            <a href="{% url 'administrar_entidad_sede' espacio.sede.id %}" class="btn btn-primary">Administrar</a>
+            <a href="{% url 'registrar_responsable' espacio.sede.id %}" class="btn btn-primary">Registrar Responsable</a>
+            <a href="{% url 'listar_responsables' espacio.sede.id %}" class="btn btn-primary">Listar Responsables</a>
+            <div class="btn btn-warning">
+                Estado: {{ espacio.estado }}
+            </div>
+        {% endfor %}
+    {% else %}
+        <li>No hay entidades-sedes aprobadas hasta el momento.</li>
+    {% endif %}
+    </ul>
+{% endblock %}

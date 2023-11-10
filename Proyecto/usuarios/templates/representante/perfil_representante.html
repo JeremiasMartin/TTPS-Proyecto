@@ -1,0 +1,70 @@
+{% extends "ProyectoApp/app.html" %}
+{% block title %} Mi perfil {% endblock title %}
+
+{% load static %}
+
+{% block breadcrumb %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Perfil</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'Dash' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Mi perfil</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock breadcrumb %}
+
+{% block content %}
+
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <div id="msg-{{ message.tags }}"class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+
+            <div class="card card-primary card-outline">
+                <div class="card-body box-profile">
+                    <div class="text-center">
+                        <img class="profile-user-img img-fluid img-circle"
+                            src="{% static 'ProyectoApp/img/logo.png' %}"
+                            alt="User profile picture">
+                    </div>
+
+                    <h3 class="profile-username text-center">{{ representante.user.nombre }} {{ representante.user.apellido }}</h3>
+
+                    <p class="text-muted text-center">{{ representante.user.email }}</p>
+
+                    <ul class="list-group list-group-unbordered mb-3">
+                        <li class="list-group-item">
+                            <b>DNI</b> <span class="text-primary float-right">{{ representante.user.dni }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <b>Teléfono</b> <span class="text-primary float-right">{{ representante.user.telefono }}</span>
+                        </li>
+                    </ul>
+
+                    <a href="{% url 'editar_perfil_representante' %}" class="btn btn-primary btn-block"><b>Editar perfil</b></a>
+                    <a href="/usuarios/cambiar_contrasenia" class="btn btn-primary btn-block"><b>Cambiar Contraseña</b></a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
