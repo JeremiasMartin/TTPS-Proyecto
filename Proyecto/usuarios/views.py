@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect , get_object_or_404
 from .forms import AdminProvincialForm, RepresentanteForm, UsuarioComunForm, CustomPasswordChangeForm, CertificanteForm
-from .models import Usuario, Representante ,AdminProvincial, UsuarioComun, Certificante, Provincias
+from .models import Provincias, Usuario, Representante ,AdminProvincial, UsuarioComun, Certificante, Provincias
 from espacios_obligados.models import Sede,EspacioObligado 
 import random
 from django.contrib.auth import authenticate, login, logout as django_logout
@@ -226,22 +226,35 @@ def inicioAdminProvincial(request):
     return render(request, 'adminProvincial/inicioAdminProvincial.html', {'admin': administrador, 'provincias': provincias_asociadas, 'espacios': sedes_sin_espacio})
 
 
-def cambiar_estado_espacio(request, sede_id):
-    print(f'ID del Espacio: {sede_id}')
+def cambiar_estado_espacio(request,sede_id):
     if request.method == 'POST':
         sede = Sede.objects.get(id=sede_id)
         espacio = EspacioObligado()
         espacio.sede = Sede.objects.get(id=sede_id)
         if request.POST.get('action') == 'aprobar':
-            espacio.estado = 'CARDIO ASISTIDO'
+            espacio.estado= 'EN PROCESO'
 
         elif request.POST.get('action') == 'rechazar':
-            espacio.estado = 'EN PROCESO'
+            espacio.estado = 'RECHAZADO'
             espacio.motivo = request.POST.get('reason')
         print(espacio)
         espacio.save()
 
     return redirect('inicioAdminProvincial')
+
+def cambiar_dias_validez(request):
+    administrador = AdminProvincial.objects.get(user=request.user)
+    provincias_asociadas = administrador.provincias.all()
+       
+    return render(request, 'adminProvincial/cambiar_dias_validez.html',{'admin':administrador,'provincias':provincias_asociadas})
+
+def modificar_validez(request, provincia_id):
+    if request.method == 'POST':
+        nuevo_validez = request.POST.get('nuevo_validez')
+        provincia = Provincias.objects.get(provincia_id=provincia_id)
+        provincia.validez_certificado = nuevo_validez
+        provincia.save()
+        return redirect('cambiar_dias_validez')
 
   
 def usuario_comun_signup(request):

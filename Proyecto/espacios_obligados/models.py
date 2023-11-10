@@ -76,9 +76,19 @@ class Responsable(models.Model):
     apellido = models.CharField(max_length=200)
     telefono = models.CharField(max_length=200)
     email = models.CharField(max_length=200)
-
     def __str__(self):
         return self.nombre + " " + self.apellido
+    
+
+class SolicitudAprobacion(models.Model):
+    representante = models.ForeignKey(Representante, on_delete=models.CASCADE)
+    entidad = models.ForeignKey(Entidad, on_delete=models.CASCADE)
+    sede = models.ForeignKey(Sede, on_delete=models.CASCADE)
+    motivo = models.TextField()
+    aprobado = models.BooleanField(default=False)
+    estado = models.TextField(default='', blank=True)
+    def __str__(self):
+        return f'nombre sede {self.sede.nombre} y estado{self.estado}'
 
 
 class Visita(models.Model):

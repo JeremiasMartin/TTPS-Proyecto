@@ -6,34 +6,46 @@
 </li>
 {% if user.tipo_usuario == 'representante' %}
 <li class="nav-item">
-  <a href="#" class="nav-link">
-    <i class="nav-icon fas fa-tachometer-alt"></i>
-    <p>
-      Espacios Obligados
-      <i class="right fas fa-angle-left"></i>
-    </p>
-  </a>
-  <ul class="nav nav-treeview">
-    <li class="nav-item">
-      <a href="{% url 'registrar_entidad' %}" class="nav-link">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Solicitar Autorización</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="{% url 'listar_mis_entidades_sedes' %}" class="nav-link">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Mis Espacios Obligados</p>
-      </a>
-    </li>
-  </ul>
+    <a href="#" class="nav-link">
+      <i class="nav-icon fas fa-tachometer-alt"></i>
+      <p>
+        Espacios Obligados
+        <i class="right fas fa-angle-left"></i>
+      </p>
+    </a>
+    <ul class="nav nav-treeview">
+      <li class="nav-item">
+        <a href="{% url 'registrar_entidad' %}" class="nav-link">
+          <i class="far fa-circle nav-icon"></i>
+          <p>Solicitar Autorización</p>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'listar_mis_entidades_sedes' %}" class="nav-link">
+          <i class="far fa-circle nav-icon"></i>
+          <p>Mis Espacios Obligados</p>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'solicitud_aprobacion' %}" class="nav-link">
+          <i class="far fa-circle nav-icon"></i>
+          <p>Solicitar Representar Espacio Existente</p>
+        </a>
+      </li>
+    </ul>
 </li>
 {% endif %}
 {% if user.tipo_usuario == 'admin_provincial' %}
-<li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
-  <a class="nav-link" href="{% url 'inicioAdminProvincial' %}">Administrador Provincial</a>
-</li>
-{% endif %}
+        <li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
+          <a class="nav-link" href="{% url 'inicioAdminProvincial' %}" >Solicitudes nuevos espacios</a>
+        </li>
+        <li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
+          <a class="nav-link" href="{% url 'cambiar_dias_validez' %}" >Cambiar validez de provincia</a>
+        </li>
+        <li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
+          <a class="nav-link" href="{% url 'lista_solicitudes_pendientes' %}" >Solicitudes espacios existentes</a>
+        </li>
+{% endif %} 
 
 {% if user.tipo_usuario == 'certificante' %}
 <li class="nav-item">

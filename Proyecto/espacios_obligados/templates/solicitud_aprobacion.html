@@ -1,0 +1,16 @@
+{% extends "ProyectoApp/base.html" %}
+{% block content %}
+
+<h1>Solicitar Aprobación</h1>
+
+<form method="post" id="solicitudForm">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Enviar Solicitud</button>
+</form>
+
+{% if mensaje %}
+    {{mensaje}}
+    
+{% endif %}
+{% endblock %}
