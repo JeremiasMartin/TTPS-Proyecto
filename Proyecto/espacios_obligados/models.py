@@ -1,5 +1,5 @@
 from django.db import models
-from usuarios.models import Representante, Provincias
+from usuarios.models import Representante, Provincias, Certificante
 from django.contrib.gis.db import models as gis_models
 
 # Create your models here.
@@ -79,3 +79,15 @@ class Responsable(models.Model):
 
     def __str__(self):
         return self.nombre + " " + self.apellido
+
+
+class Visita(models.Model):
+    id = models.AutoField(primary_key=True)
+    fecha_hora = models.DateTimeField()
+    observaciones = models.TextField()
+    resultado = models.CharField(max_length=20, choices=[('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')])
+    espacio_obligado_id = models.ForeignKey(EspacioObligado, on_delete=models.CASCADE)
+    certificante_id = models.ForeignKey(Certificante, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.fecha_hora

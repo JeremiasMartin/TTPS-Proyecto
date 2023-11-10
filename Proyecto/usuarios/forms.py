@@ -1,5 +1,5 @@
 from django import forms
-from .models import Usuario
+from .models import Usuario, Provincias
 import random
 from django.utils.encoding import force_str
 import string
@@ -139,7 +139,7 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         ),
         "password_mismatch": _("Los dos campos de contraseña no coinciden."),
     }
-    
+
 
 class AdminProvincialForm(forms.ModelForm):
     class Meta:
@@ -193,13 +193,14 @@ class AdminProvincialForm(forms.ModelForm):
 
 
 class UsuarioComunForm(forms.ModelForm):
-
+  
     class Meta:
         model = Usuario
         fields = ['dni', 'nombre', 'apellido', 'telefono', 'email']
 
     def __init__(self, *args, **kwargs):
         super(UsuarioComunForm, self).__init__(*args, **kwargs)
+
         self.fields['nombre'] = forms.CharField(required=True, label=force_str(
             "Nombre"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su nombre', 'class': 'form-control'}))
 
@@ -214,17 +215,72 @@ class UsuarioComunForm(forms.ModelForm):
 
         self.fields['telefono'] = forms.IntegerField(required=True, label=force_str(
             "Teléfono"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su teléfono', 'class': 'form-control', 'type': 'number'}))
-    
+        
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if Usuario.objects.filter(email=email).exists():
             raise forms.ValidationError(
                 'Este correo electrónico ya está en uso. Prueba con otro')
         return email
-    
+
     def clean_dni(self):
         dni = self.cleaned_data.get('dni')
         if Usuario.objects.filter(dni=dni).exists():
             raise forms.ValidationError(
                 'Este DNI ya está en uso. Prueba con otro')
         return dni
+
+      
+class CertificanteForm(forms.ModelForm):
+  
+    class Meta:
+        model = Usuario
+        fields = ['dni', 'nombre', 'apellido', 'telefono', 'email']
+
+    def __init__(self, *args, **kwargs):
+        super(CertificanteForm, self).__init__(*args, **kwargs)
+        self.fields['nombre'] = forms.CharField(required=True, label=force_str(
+            "Nombre"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su nombre', 'class': 'form-control'}))
+
+        self.fields['apellido'] = forms.CharField(required=True, label=force_str(
+            "Apellido"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su apellido', 'class': 'form-control'}))
+
+        self.fields['email'] = forms.EmailField(required=True, label=force_str(
+            "Correo electrónico"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su correo electrónico', 'class': 'form-control'}))
+
+        self.fields['dni'] = forms.IntegerField(required=True, label=force_str(
+            "DNI"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su DNI', 'class': 'form-control', 'type': 'number'}))
+
+        self.fields['telefono'] = forms.IntegerField(required=True, label=force_str(
+            "Teléfono"), widget=forms.TextInput(attrs={'placeholder': 'Ingrese su teléfono', 'class': 'form-control', 'type': 'number'}))
+
+        self.fields['provincias'] = forms.ModelMultipleChoiceField(queryset=Provincias.objects.all(), required=True, label=force_str(
+            "Provincias"), widget=forms.SelectMultiple(attrs={'class': 'select2', 'style': 'width: 100%;', 'data-placeholder': 'Seleccione las provincias'}))
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if Usuario.objects.filter(email=email).exists():
+            raise forms.ValidationError(
+                'Este correo electrónico ya está en uso. Prueba con otro')
+        return email
+
+    def clean_dni(self):
+        dni = self.cleaned_data.get('dni')
+        if Usuario.objects.filter(dni=dni).exists():
+            raise forms.ValidationError(
+                'Este DNI ya está en uso. Prueba con otro')
+        return dni
+
+    def save(self, commit=True):
+        usuario = Usuario.objects.create_user(
+            email=self.cleaned_data['email'],
+            # Genera una contraseña aleatoria de 8 caracteres
+            password=''.join(random.choices(
+                string.ascii_letters + string.digits, k=8))
+        )
+        certificante = super(CertificanteForm, self).save(commit=False)
+        certificante.user = usuario
+        if commit:
+            certificante.save()
+        return certificante
