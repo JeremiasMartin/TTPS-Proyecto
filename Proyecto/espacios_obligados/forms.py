@@ -130,7 +130,7 @@ class VisitaForm(forms.ModelForm):
         fields = ['fecha_hora', 'observaciones', 'resultado']
     
         widgets = {
-            'fecha_hora': forms.DateTimeInput(attrs={'class': 'form-control datetimepicker'}),
+            'fecha_hora': forms.DateTimeInput(attrs={'class': 'form-control', 'data-inputmask-alias': 'datetime', 'data-inputmask-inputformat': 'yyyy-mm-dd HH:MM', 'data-mask': 'data-mask', 'autofocus': 'autofocus'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'resultado': forms.Select(attrs={'class': 'form-control'}, choices=[('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')]),
         }
