@@ -340,9 +340,7 @@ def certificante_signup(request):
             provincias_ids = [
                 provincia.pk for provincia in provincias_seleccionadas]
 
-            for provincia_id in provincias_ids:
-                provincia = Provincias.objects.get(pk=provincia_id)
-                certificante.provincias.add(provincia)
+            certificante.agregar_provincias(provincias_ids)
 
             subject = '[ResucitAR] Registro de Usuario Exitoso'
             from_email = 'ResucitAR <%s>' % (settings.EMAIL_HOST_USER)
