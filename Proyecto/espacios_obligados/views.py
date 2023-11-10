@@ -333,9 +333,14 @@ def nueva_visita(request, espacio_obligado_id):
         form = VisitaForm(request.POST)
         if form.is_valid():
             visita = form.save(commit=False)
-            visita.espacio_obligado_id = espacio_obligado_id
-            visita.certificante_id = request.user.id
+            espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
+            visita.espacio_obligado_id = espacio_obligado
+            certificante = Certificante.objects.get(user=request.user)
+            visita.certificante_id = certificante
             visita.save()
+            if visita.resultado == 'aprobado':
+                espacio_obligado.estado = 'CARDIO ASISTIDO CERTIFICADO'
+                espacio_obligado.save()
             return redirect('listar_espacios_obligados_certificante')
     else:
         form = VisitaForm()
