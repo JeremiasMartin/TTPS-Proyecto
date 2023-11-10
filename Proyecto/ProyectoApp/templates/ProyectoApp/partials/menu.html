@@ -45,7 +45,7 @@
         <li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
           <a class="nav-link" href="{% url 'lista_solicitudes_pendientes' %}" >Solicitudes espacios existentes</a>
         </li>
-  
+{% endif %} 
 
 {% if user.tipo_usuario == 'certificante' %}
 <li class="nav-item">
