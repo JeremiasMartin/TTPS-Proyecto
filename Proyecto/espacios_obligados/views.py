@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
 from .forms import *
 from django.contrib.gis.geos import Point
@@ -351,3 +351,14 @@ def nueva_visita(request, espacio_obligado_id):
 def listar_visitas(request, espacio_obligado_id):
     visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id)
     return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})
+
+
+def eliminar_visita(request, visita_id):
+    visita = Visita.objects.get(id=visita_id)
+    if request.method == 'POST':
+        espacio_obligado = EspacioObligado.objects.get(id=visita.espacio_obligado_id.id)
+        espacio_obligado.estado = 'CARDIO ASISTIDO'
+        espacio_obligado.save()
+        visita.delete()
+    return redirect('listar_visitas', espacio_obligado_id=visita.espacio_obligado_id.id)
+    

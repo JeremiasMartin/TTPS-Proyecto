@@ -35,4 +35,5 @@ urlpatterns = [
          name='listar_espacios_obligados_certificante'),
      path('certificante/nueva-visita/<int:espacio_obligado_id>', views.nueva_visita, name='nueva_visita'),
      path('certificante/visitas/espacio-obligado/<int:espacio_obligado_id>', views.listar_visitas, name='listar_visitas'),
+     path('certificante/visita/<int:visita_id>', views.eliminar_visita, name='eliminar_visita'),
 ]
