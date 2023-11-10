@@ -51,10 +51,10 @@
 {% block content %}
 {% if user.tipo_usuario == 'comun' %}
 <div style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 500px;">
-  <a href="{% static 'ProyectoApp/media/rcp.mp3' %}" class="btn btn-danger" style="height: 100px; width: 100px; margin-bottom: 10px;">Urgencia</a>
-  <div style="display: flex; flex-direction: row;">
-      <a href="{% static 'ProyectoApp/media/rcp.mp3' %}" class="btn btn-primary" style="width: 300px; margin-right: 10px;">Buscar DEA libre</a>
-      <button class="btn btn-success" style="width: 300px;" onclick="toggleAudio()">¿Cómo realizar RCP?</button>
+  <a href="{% static 'ProyectoApp/media/rcp.mp3' %}" class="btn btn-danger" style="height: 100px; width: 200px; font-size: 24px; margin-bottom: 50px; display: flex; align-items: center; justify-content: center;">Urgencia</a>
+  <div style="display: flex; flex-direction: row; height: 60px;">
+      <a href="{% url 'mapa' %}" class="btn btn-primary" style="width: 300px; margin-right: 10px; font-size: 18px; display: flex; align-items: center; justify-content: center;">Ver DEAs activos</a>
+      <button class="btn btn-success" style="width: 300px; font-size: 18px; display: flex; align-items: center; justify-content: center;" onclick="toggleAudio()">¿Cómo realizar RCP?</button>
   </div>
   <audio id="audioPlayer" controls style="width: 300px; display: none;">
       <source src="{% static 'ProyectoApp/media/rcp.mp3' %}" type="audio/mpeg">

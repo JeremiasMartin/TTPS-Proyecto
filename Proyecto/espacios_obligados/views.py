@@ -63,7 +63,7 @@ def listar_mis_entidades_sedes(request):
 
     entidades_sedes = Sede.objects.filter(representantes=representante)
 
-    sedes_aprobadas = EspacioObligado.objects.filter(sede__in=entidades_sedes).exclude(estado='Rechazado') # Capturo las sedes que hayan sido aprobadas (ya son espacios obligados) y su estado no sea "Rechazado"
+    sedes_aprobadas = EspacioObligado.objects.filter(sede__in=entidades_sedes).exclude(estado='RECHAZADO') # Capturo las sedes que hayan sido aprobadas (ya son espacios obligados) y su estado no sea "Rechazado"
 
     return render(request, 'listar_mis_entidades_sedes.html', {'entidades_sedes': sedes_aprobadas})
 
@@ -102,9 +102,9 @@ def declaracion_jurada(request, sede_id):
             sede_espacio = EspacioObligado.objects.get(sede=sede) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
             deas = DEA.objects.filter(dea_sede=sede) # Capturo los deas registrados de la sede para chequear si coinciden con lo declarado en la ddjj
             if ((ddjj.personal_capacitado and ddjj.senaletica and ddjj.protocolo_accion and ddjj.sistema_emergencia) and ddjj.deas_decreto <= len(deas)):
-                sede_espacio.estado = "Cardio Asistido"
+                sede_espacio.estado = "CARDIO ASISTIDO"
             else:
-                sede_espacio.estado = "En Proceso"
+                sede_espacio.estado = "EN PROCESO"
             sede_espacio.save()
             return redirect('listar_mis_entidades_sedes')
     else:
@@ -151,7 +151,7 @@ def registrar_dea(request, sede_id):
             sede_espacio = EspacioObligado.objects.get(sede=sede) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
             # Chequeo que la cantidad de deas registrados coincida con la cantidad declarada en la ddjj
             if ((sede.personal_capacitado and sede.senaletica and sede.protocolo_accion and sede.sistema_emergencia) and sede.deas_decreto <= len(deas)):
-                sede_espacio.estado = "Cardio Asistido"
+                sede_espacio.estado = "CARDIO ASISTIDO"
                 sede_espacio.save()
 
 
@@ -227,9 +227,9 @@ def eliminar_dea(request, dea_id):
         sede_espacio = EspacioObligado.objects.get(sede__id=sede_id) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
         # Chequeo que la cantidad de deas registrados coincida con la cantidad declarada en la ddjj
         if((sede_espacio.sede.personal_capacitado and sede_espacio.sede.senaletica and sede_espacio.sede.protocolo_accion and sede_espacio.sede.sistema_emergencia) and sede_espacio.sede.deas_decreto <= len(deas)):
-            sede_espacio.estado = "Cardio Asistido"
+            sede_espacio.estado = "CARDIO ASISTIDO"
         else:
-            sede_espacio.estado = "En Proceso"
+            sede_espacio.estado = "EN PROCESO"
         sede_espacio.save()
         
 

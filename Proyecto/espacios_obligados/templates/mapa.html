@@ -6,11 +6,14 @@
 <head>
   {% leaflet_js plugins="forms" %}
   {% leaflet_css plugins="forms" %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
   <script src="https://kit.fontawesome.com/803ea84c99.js" crossorigin="anonymous"></script>
   <style>
     .custom-icon {
       font-size: 24px; /* Tamaño del ícono  */
-      color:rgb(73, 149, 255);
+      color: rgb(73, 149, 255);
     }
     .custom-popup .siempre-visible {
       display: block !important;
@@ -69,6 +72,8 @@
         maxZoom: 20,
       }).addTo(map);
 
+      var markers = L.markerClusterGroup();
+
       {% for dea in deas %}
         var lat = "{{ dea.dea_sede.ubicacion.y }}".replace(",", ".");
         var lng = "{{ dea.dea_sede.ubicacion.x }}".replace(",", ".");
@@ -77,30 +82,51 @@
         var iconClass = "fa-solid fa-suitcase-medical";
 
         // Crear el ícono de FontAwesome con el iconClass correspondiente
+        var iconClass = "fa-solid fa-suitcase-medical";
+        var iconColor = {% if dea.solidario %} "green" {% else %} "red" {% endif %};
         var icon = L.divIcon({
           className: 'custom-icon',
-          html: '<i class="fas ' + iconClass + '"></i>',
+          html: '<i class="fas ' + iconClass + '" style="color: ' + iconColor + ';"></i>',
           iconSize: [10, 10],
         });
 
-        // Agregar el marcador al mapa con el icono correspondiente
-        var marker = L.marker(latLng, { icon: icon }).addTo(map);
-        marker.bindPopup(`
+        var marker = L.marker(latLng, { icon: icon }).bindPopup(`
+            <br>
             Nombre: {{dea.nombre_representativo}}
             <br>
-            Es solidario: {% if dea.es_solidario %} Sí {% else %} No {% endif %}
+            Es solidario: {% if dea.solidario %} Sí {% else %} No {% endif %}
             <br><br>
-              <a href='#' class='btn btn-primary siempre-visible' style="font-size:15px; color: white;">Editar Informaci&oacute;n</a>
+            {% if dea.solidario %}
+              <a href='#' class='btn btn-primary siempre-visible' style="font-size:15px; color: white;">Notificar a Responsables</a>
+            {% endif %}
         `);
+
+        markers.addLayer(marker);
       {% endfor %}
 
+      // Agregar el grupo de marcadores al mapa
+      map.addLayer(markers);
+
+      // Obtener la posición actual del usuario
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          var userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
+          var userMarkerIcon = L.divIcon({
+            className: 'custom-icon',
+            html: '<i class="fa-solid fa-location-dot"></i>',
+            iconSize: [24, 24],
+          });
+          var userMarker = L.marker(userLatLng, { icon: userMarkerIcon }).addTo(map);
+          userMarker.bindPopup("Tu posición actual");
+        });
+      }
 
       // Mostrar mensaje si no hay personal registrado
       {% if not deas %}
       var mensajeNoDEAS = document.createElement('div');
       mensajeNoDEAS.className = 'mensaje-no-deas';
       mensajeNoDEAS.innerHTML = `
-        <p>No hay deas activos registrados.</p>
+        <p>No hay DEAs activos registrados.</p>
         <button class="btn btn-aceptar">Aceptar</button>
       `;
       document.getElementById('map-container').appendChild(mensajeNoDEAS);
