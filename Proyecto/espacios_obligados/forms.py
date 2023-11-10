@@ -1,5 +1,5 @@
 from django import forms
-from .models import Entidad, Sede, Provincias, DEA, HistorialDEA, Responsable, SolicitudAprobacion
+from .models import Entidad, Sede, Provincias, DEA, HistorialDEA, Responsable, SolicitudAprobacion,EspacioObligado
 from leaflet.forms.widgets import LeafletWidget
 from django.contrib.gis.geos import Point
 from django.contrib.gis import forms as gis_forms
@@ -135,13 +135,14 @@ class SolicitudAprobacionForm(forms.ModelForm):
 
         opciones_entidad_sede = []
 
-        for sede in Sede.objects.all():
+        for espacio_obligado in EspacioObligado.objects.all():
+            sede = espacio_obligado.sede
             opciones_entidad_sede.append((f'{sede.id}', f'{sede.entidad.razon_social} - {sede.nombre}'))
 
         self.fields['entidad_sede'].choices = opciones_entidad_sede
 
     def clean_entidad_sede(self):
         sede_id = self.cleaned_data['entidad_sede']
-        return sede_id  # Devolvemos el ID como cadena
+        return sede_id  
     
     

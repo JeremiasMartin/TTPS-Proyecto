@@ -267,7 +267,7 @@ def eliminar_responsable(request, responsable_id):
     return render(request, 'responsable/eliminar_responsable.html', {'responsable': responsable, 'sede': sede_id})
 
 def solicitud_aprobacion(request):
-    ok=True
+
     if request.method == 'POST':
         form = SolicitudAprobacionForm(request.POST)
         if form.is_valid():
@@ -275,13 +275,25 @@ def solicitud_aprobacion(request):
             sede_id = form.cleaned_data['entidad_sede']  # Obtener el ID de la sede
             sede = Sede.objects.get(id=sede_id)  # Obtener la instancia de la sede
             motivo = form.cleaned_data['motivo']
+
+            try:
+                espacio_obligado = EspacioObligado.objects.get(sede=sede)
+            except EspacioObligado.DoesNotExist:
+                mensaje = "El EspacioObligado asociado a esta sede no existe"
+                return render(request, 'solicitud_aprobacion.html', {'form': form, 'mensaje': mensaje})
+
+
+            # Verificar que el representante no exista en la lista de representantes
+            if sede.representantes.filter(representante_id=representante.representante_id).exists():
+                mensaje = "Usted ya está asociado a esta sede"
+                return render(request, 'solicitud_aprobacion.html', {'form': form, 'mensaje':mensaje})
             
             # Verificar si ya existe una solicitud con la misma entidad y sede
             if SolicitudAprobacion.objects.filter(entidad=sede.entidad, sede=sede).exists():
                 # Mostrar un mensaje de error
-                ok=False
-                mensaje = "Ya hay una solicitud de aprobación para la entidad-sede"
+                mensaje = "Ud ya tiene una solicitud de aprobación para la entidad-sede"
                 return render(request, 'solicitud_aprobacion.html', {'form': form, 'mensaje':mensaje})
+            
             
             solicitud_aprobacion = SolicitudAprobacion(
                 representante=representante, 
