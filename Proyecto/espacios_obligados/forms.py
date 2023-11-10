@@ -1,5 +1,5 @@
 from django import forms
-from .models import Entidad, Sede, Provincias, DEA, HistorialDEA, Responsable, Visita
+from .models import Entidad, Sede, Provincias, DEA, HistorialDEA, Responsable, Visita, SolicitudAprobacion,EspacioObligado
 from leaflet.forms.widgets import LeafletWidget
 from django.contrib.gis.geos import Point
 from django.contrib.gis import forms as gis_forms
@@ -134,3 +134,27 @@ class VisitaForm(forms.ModelForm):
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'resultado': forms.Select(attrs={'class': 'form-control'}, choices=[('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')]),
         }
+
+class SolicitudAprobacionForm(forms.ModelForm):
+    entidad_sede = forms.ChoiceField(choices=(), required=True)
+
+    class Meta:
+        model = SolicitudAprobacion
+        fields = ['entidad_sede', 'motivo']
+
+    def __init__(self, *args, **kwargs):
+        super(SolicitudAprobacionForm, self).__init__(*args, **kwargs)
+
+        opciones_entidad_sede = []
+
+        for espacio_obligado in EspacioObligado.objects.all():
+            sede = espacio_obligado.sede
+            opciones_entidad_sede.append((f'{sede.id}', f'{sede.entidad.razon_social} - {sede.nombre}'))
+
+        self.fields['entidad_sede'].choices = opciones_entidad_sede
+
+    def clean_entidad_sede(self):
+        sede_id = self.cleaned_data['entidad_sede']
+        return sede_id  
+    
+    

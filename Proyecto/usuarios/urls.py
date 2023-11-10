@@ -21,6 +21,9 @@ urlpatterns = [
     path('inicioAdminProvincial/',views.inicioAdminProvincial,name='inicioAdminProvincial'),
     path('registroAdminProvincial/', views.adminProvincial_signup, name='registroAdminProvincial'),
     path('cambiar_estado_espacio/<int:sede_id>/', views.cambiar_estado_espacio, name='cambiar_estado_espacio'),
+    path('cambiar_dias_validez', views.cambiar_dias_validez, name='cambiar_dias_validez'),
+    path('modificar_validez/<int:provincia_id>/', views.modificar_validez, name='modificar_validez'),
+    
     path('registro_usuario_comun', views.usuario_comun_signup, name='registro_usuario_comun'),
     # Usuario certificante
     path('registro_certificante/', views.certificante_signup,
