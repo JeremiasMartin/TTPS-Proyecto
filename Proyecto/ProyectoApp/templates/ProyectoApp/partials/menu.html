@@ -1,8 +1,8 @@
 <li class="nav-item">
-    <a href="{% url 'Dash' %}" class="nav-link {% if request.path == '/dash' %} active {%endif %}">
-        <i class="nav-icon fas fa-tachometer-alt"></i>
-        <p>Dashboard</p>
-    </a>
+  <a href="{% url 'Dash' %}" class="nav-link {% if request.path == '/dash' %} active {%endif %}">
+    <i class="nav-icon fas fa-tachometer-alt"></i>
+    <p>Dashboard</p>
+  </a>
 </li>
 {% if user.tipo_usuario == 'representante' %}
 <li class="nav-item">
@@ -45,4 +45,14 @@
         <li class="nav-item {% if request.path == '/usuarios/#/' %}current_page_item{%endif %}">
           <a class="nav-link" href="{% url 'lista_solicitudes_pendientes' %}" >Solicitudes espacios existentes</a>
         </li>
+  
+
+{% if user.tipo_usuario == 'certificante' %}
+<li class="nav-item">
+  <a href="{% url 'listar_espacios_obligados_certificante' %}"
+    class="nav-link {% if request.path == '/espacios/certificante/listado_espacios_obligados' %} active {%endif %}">
+    <i class="nav-icon fas fa-circle nav-icon"></i>
+    <p>Listado de espacios</p>
+  </a>
+</li>
 {% endif %}

@@ -12,9 +12,10 @@
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Guardar Sede</button>
+    <a href="{% url 'registrar_entidad' %}" class="btn btn-primary">Atrás</a>
+    <button type="submit" class="btn btn-primary">Guardar Sede</button>
   </form>
-  
+  <br><br>
   <h2>Sedes Registradas para {{ entidad.razon_social }}:</h2>
   <ul>
     {% for sede in sedes %}

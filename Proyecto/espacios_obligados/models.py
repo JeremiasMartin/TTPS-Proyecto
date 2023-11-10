@@ -1,5 +1,5 @@
 from django.db import models
-from usuarios.models import Representante, Provincias
+from usuarios.models import Representante, Provincias, Certificante
 from django.contrib.gis.db import models as gis_models
 
 # Create your models here.
@@ -57,7 +57,7 @@ class DEA(models.Model):
     estado = models.CharField(max_length=10, choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')], default='activo')
 
     def __str__(self):
-        return self.sede.nombre
+        return self.nombre_representativo
     
 
 class HistorialDEA(models.Model):
@@ -76,7 +76,6 @@ class Responsable(models.Model):
     apellido = models.CharField(max_length=200)
     telefono = models.CharField(max_length=200)
     email = models.CharField(max_length=200)
-
     def __str__(self):
         return self.nombre + " " + self.apellido
     
@@ -90,3 +89,15 @@ class SolicitudAprobacion(models.Model):
     estado = models.TextField(default='', blank=True)
     def __str__(self):
         return f'nombre sede {self.sede.nombre} y estado{self.estado}'
+
+
+class Visita(models.Model):
+    id = models.AutoField(primary_key=True)
+    fecha_hora = models.DateTimeField()
+    observaciones = models.TextField()
+    resultado = models.CharField(max_length=20, choices=[('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')])
+    espacio_obligado_id = models.ForeignKey(EspacioObligado, on_delete=models.CASCADE)
+    certificante_id = models.ForeignKey(Certificante, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.fecha_hora

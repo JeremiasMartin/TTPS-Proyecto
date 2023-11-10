@@ -3,12 +3,13 @@ from .models import *
 from .forms import *
 from django.contrib import messages
 from django.contrib.gis.geos import Point
-from usuarios.models import Representante
+from usuarios.models import Representante, Certificante
 import requests
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_POST
 
 # Create your views here.
+
 
 def registrar_entidad(request):
     entidades = Entidad.objects.all()
@@ -21,6 +22,7 @@ def registrar_entidad(request):
         form = EntidadForm()
     return render(request, 'entidad/registrar_entidad.html', {'form': form, 'entidades': entidades})
 
+
 def registrar_sede(request, entidad_id):
     entidad = Entidad.objects.get(id=entidad_id)
     sedes = Sede.objects.filter(entidad=entidad)
@@ -30,7 +32,8 @@ def registrar_sede(request, entidad_id):
         if form.is_valid():
             sede = form.save(commit=False)
             sede.entidad = entidad
-            coordenadas = request.POST.get('ubicacion')  # Obtiene el valor de la ubicación del campo oculto
+            # Obtiene el valor de la ubicación del campo oculto
+            coordenadas = request.POST.get('ubicacion')
             if coordenadas:
                 coordenadas_list = coordenadas.split(',')
                 if len(coordenadas_list) == 2:
@@ -38,7 +41,8 @@ def registrar_sede(request, entidad_id):
                     sede.ubicacion = Point(float(longitud), float(latitud))
             representante = Representante.objects.get(user=request.user)
             sede.save()  # Guarda la sede primero
-            sede.representantes.add(representante)  # Agrega representantes después de guardar la sede
+            # Agrega representantes después de guardar la sede
+            sede.representantes.add(representante)
             return redirect('listar_sedes', entidad_id=entidad.id)
     else:
         form = SedeForm()
@@ -58,7 +62,9 @@ def listar_mis_entidades_sedes(request):
 
     entidades_sedes = Sede.objects.filter(representantes=representante)
 
-    return render(request, 'listar_mis_entidades_sedes.html', {'entidades_sedes': entidades_sedes})
+    sedes_aprobadas = EspacioObligado.objects.filter(sede__in=entidades_sedes).exclude(estado='Rechazado') # Capturo las sedes que hayan sido aprobadas (ya son espacios obligados) y su estado no sea "Rechazado"
+
+    return render(request, 'listar_mis_entidades_sedes.html', {'entidades_sedes': sedes_aprobadas})
 
 
 def administrar_entidad_sede(request, sede_id):
@@ -92,12 +98,17 @@ def declaracion_jurada(request, sede_id):
         if form.is_valid():
             ddjj = form.save(commit=False)
             ddjj.save()
+            sede_espacio = EspacioObligado.objects.get(sede=sede) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
+            deas = DEA.objects.filter(dea_sede=sede) # Capturo los deas registrados de la sede para chequear si coinciden con lo declarado en la ddjj
+            if ((ddjj.personal_capacitado and ddjj.senaletica and ddjj.protocolo_accion and ddjj.sistema_emergencia) and ddjj.deas_decreto <= len(deas)):
+                sede_espacio.estado = "Cardio Asistido"
+            else:
+                sede_espacio.estado = "En Proceso"
+            sede_espacio.save()
             return redirect('listar_mis_entidades_sedes')
     else:
         form = DeclaracionJuradaForm(instance=sede)
     return render(request, 'sede/declaracion_jurada.html', {'form': form, 'sede': sede})
-
-
 
 
 def registrar_dea(request, sede_id):
@@ -110,7 +121,8 @@ def registrar_dea(request, sede_id):
         response = requests.get(url)
 
         if response.status_code == 200:
-            marcas = [{'id': dea['id'], 'marca': dea['marca']} for dea in response.json()]
+            marcas = [{'id': dea['id'], 'marca': dea['marca']}
+                      for dea in response.json()]
         else:
             marcas = []
 
@@ -124,7 +136,7 @@ def registrar_dea(request, sede_id):
             dea = form.save(commit=False)
             marca_id = request.POST.get('marca')
             marca_nombre = None
-            
+
             for marca in marcas:
                 if str(marca['id']) == str(marca_id):
                     marca_nombre = marca['marca']
@@ -133,13 +145,21 @@ def registrar_dea(request, sede_id):
             dea.dea_sede = sede
             dea.save()
             sede.deas_registrados.add(dea)
+
+            deas = DEA.objects.filter(dea_sede=sede) # Capturo los deas registrados de la sede para chequear si coinciden con lo declarado en la ddjj
+            sede_espacio = EspacioObligado.objects.get(sede=sede) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
+            # Chequeo que la cantidad de deas registrados coincida con la cantidad declarada en la ddjj
+            if ((sede.personal_capacitado and sede.senaletica and sede.protocolo_accion and sede.sistema_emergencia) and sede.deas_decreto <= len(deas)):
+                sede_espacio.estado = "Cardio Asistido"
+                sede_espacio.save()
+
+
             return redirect('listar_deas', sede_id=sede.id)
 
     else:
         form = DEAForm()
 
     return render(request, 'dea/registrar_dea.html', {'form': form, 'sede': sede, 'marcas': marcas})
-
 
 
 def cargar_modelos(request):
@@ -164,9 +184,6 @@ def cargar_modelos(request):
     return JsonResponse({'modelos': modelos})
 
 
-
-
-
 def listar_deas(request, sede_id):
     sede = Sede.objects.get(id=sede_id)
     deas = DEA.objects.filter(dea_sede=sede)
@@ -184,18 +201,40 @@ def editar_dea(request, dea_id):
             return redirect('listar_deas', sede_id=sede_id)
     else:
         form = DEAEditForm(instance=dea)
-    return render(request, 'dea/editar_dea.html', {'form': form, 'sede':sede_id, 'dea': dea})
+    return render(request, 'dea/editar_dea.html', {'form': form, 'sede': sede_id, 'dea': dea})
 
 
+def activar_dea(request, dea_id):
+    dea = DEA.objects.get(id=dea_id)
+    dea.estado = 'activo'
+    dea.save()
+    return redirect('listar_deas', sede_id=dea.dea_sede.id)
 
+def desactivar_dea(request, dea_id):
+    dea = DEA.objects.get(id=dea_id)
+    dea.estado = 'inactivo'
+    dea.save()
+    return redirect('listar_deas', sede_id=dea.dea_sede.id)
     
 def eliminar_dea(request, dea_id):
     dea = DEA.objects.get(id=dea_id)
     sede_id = dea.dea_sede.id
     if request.method == 'POST':
         dea.delete()
+
+        deas = DEA.objects.filter(dea_sede__id=sede_id) # Capturo los deas registrados de la sede para chequear si coinciden con lo declarado en la ddjj
+        sede_espacio = EspacioObligado.objects.get(sede__id=sede_id) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
+        # Chequeo que la cantidad de deas registrados coincida con la cantidad declarada en la ddjj
+        if((sede_espacio.sede.personal_capacitado and sede_espacio.sede.senaletica and sede_espacio.sede.protocolo_accion and sede_espacio.sede.sistema_emergencia) and sede_espacio.sede.deas_decreto <= len(deas)):
+            sede_espacio.estado = "Cardio Asistido"
+        else:
+            sede_espacio.estado = "En Proceso"
+        sede_espacio.save()
+        
+
         return redirect('listar_deas', sede_id=sede_id)
     return render(request, 'dea/eliminar_dea.html', {'dea': dea, 'sede': sede_id})
+
 
 def registrar_servicio_dea(request, dea_id):
     dea = DEA.objects.get(id=dea_id)
@@ -218,12 +257,18 @@ def listar_reparaciones_dea(request, dea_id):
     reparaciones = HistorialDEA.objects.filter(dea=dea, servicio='Reparación')
     return render(request, 'dea/listar_reparaciones.html', {'dea': dea, 'reparaciones': reparaciones, 'sede': sede})
 
+
 def listar_mantenimientos_dea(request, dea_id):
     dea = DEA.objects.get(id=dea_id)
     sede = dea.dea_sede
-    mantenimientos = HistorialDEA.objects.filter(dea=dea, servicio='Mantenimiento')
+    mantenimientos = HistorialDEA.objects.filter(
+        dea=dea, servicio='Mantenimiento')
     return render(request, 'dea/listar_mantenimientos.html', {'dea': dea, 'mantenimientos': mantenimientos, 'sede': sede})
 
+
+def listar_deas_activos(request):
+    deas = DEA.objects.filter(estado='activo')
+    return render(request, 'mapa.html', {'deas': deas})
 
 
 def registrar_responsable(request, sede_id):
@@ -240,10 +285,12 @@ def registrar_responsable(request, sede_id):
         form = ResponsableForm()
     return render(request, 'responsable/registrar_responsable.html', {'form': form, 'sede': sede})
 
+
 def listar_responsables(request, sede_id):
     sede = Sede.objects.get(id=sede_id)
     responsables = Responsable.objects.filter(sede_asignada=sede)
     return render(request, 'responsable/listar_responsables.html', {'sede': sede, 'responsables': responsables})
+
 
 def editar_responsable(request, responsable_id):
     responsable = Responsable.objects.get(id=responsable_id)
@@ -258,6 +305,7 @@ def editar_responsable(request, responsable_id):
         form = ResponsableForm(instance=responsable)
     return render(request, 'responsable/editar_responsable.html', {'form': form, 'sede': sede_id, 'responsable': responsable})
 
+
 def eliminar_responsable(request, responsable_id):
     responsable = Responsable.objects.get(id=responsable_id)
     sede_id = responsable.sede_asignada.id
@@ -266,6 +314,141 @@ def eliminar_responsable(request, responsable_id):
         return redirect('listar_responsables', sede_id=sede_id)
     return render(request, 'responsable/eliminar_responsable.html', {'responsable': responsable, 'sede': sede_id})
 
+def solicitud_aprobacion(request):
+
+    if request.method == 'POST':
+        form = SolicitudAprobacionForm(request.POST)
+        if form.is_valid():
+            representante = request.user.representante
+            sede_id = form.cleaned_data['entidad_sede']  # Obtener el ID de la sede
+            sede = Sede.objects.get(id=sede_id)  # Obtener la instancia de la sede
+            motivo = form.cleaned_data['motivo']
+
+            try:
+                espacio_obligado = EspacioObligado.objects.get(sede=sede)
+            except EspacioObligado.DoesNotExist:
+                mensaje = "El EspacioObligado asociado a esta sede no existe"
+                return render(request, 'solicitud_aprobacion.html', {'form': form, 'mensaje': mensaje})
+
+
+            # Verificar que el representante no exista en la lista de representantes
+            if sede.representantes.filter(representante_id=representante.representante_id).exists():
+                mensaje = "Usted ya está asociado a esta sede"
+                return render(request, 'solicitud_aprobacion.html', {'form': form, 'mensaje':mensaje})
+            
+            # Verificar si ya existe una solicitud con la misma entidad y sede
+            if SolicitudAprobacion.objects.filter(entidad=sede.entidad, sede=sede).exists():
+                # Mostrar un mensaje de error
+                mensaje = "Ud ya tiene una solicitud de aprobación para la entidad-sede"
+                return render(request, 'solicitud_aprobacion.html', {'form': form, 'mensaje':mensaje})
+            
+            
+            solicitud_aprobacion = SolicitudAprobacion(
+                representante=representante, 
+                entidad=sede.entidad, 
+                sede=sede, 
+                motivo=motivo
+            )
+            solicitud_aprobacion.save() 
+            return redirect('/dash')
+    else:
+        form = SolicitudAprobacionForm()
+
+    return render(request, 'solicitud_aprobacion.html', {'form': form})
+
+
+
+def lista_solicitudes_pendientes(request):   
+
+    solicitudes_pendientes = SolicitudAprobacion.objects.filter(aprobado=False)
+    return render(request, 'lista_solicitudes_pendientes.html', {'solicitudes_pendientes': solicitudes_pendientes})
+
+def aprobar_solicitud(request, solicitud_id):
+    if not request.user.is_authenticated or not request.user.adminprovincial:
+        return HttpResponseForbidden("No tienes permisos para realizar esta acción.")
+    
+    solicitud = get_object_or_404(SolicitudAprobacion, pk=solicitud_id)
+    solicitud.aprobado = True
+    solicitud.aprobado_por = request.user.adminprovincial
+    solicitud.save()
+    return redirect('lista_solicitudes_pendientes')
+
+def rechazar_solicitud(request, solicitud_id):
+    if not request.user.is_authenticated or not request.user.adminprovincial:
+        return HttpResponseForbidden("No tienes permisos para realizar esta acción.")
+    
+    solicitud = get_object_or_404(SolicitudAprobacion, pk=solicitud_id)
+    solicitud.aprobado = False
+
+    solicitud.save()
+    return redirect('lista_solicitudes_pendientes')
+
+def listar_espacios_obligados_certificante(request):
+    certificante = Certificante.objects.get(user=request.user)
+    certificante_provincias = certificante.provincias.all()
+
+    espacios_obligados = []
+    for provincia in certificante_provincias:
+        espacios = EspacioObligado.objects.filter(sede__provincia=provincia)
+        # Agrega los espacios obligados a la lista
+        espacios_obligados.extend(espacios)
+
+    print(espacios_obligados)
+
+    return render(request, 'certificante/listar_espacios_obligados.html', {'espacios_obligados': espacios_obligados})
+
+def nueva_visita(request, espacio_obligado_id):
+    if request.method == "POST":
+        form = VisitaForm(request.POST)
+        if form.is_valid():
+            visita = form.save(commit=False)
+            visita.espacio_obligado_id = espacio_obligado_id
+            visita.certificante_id = request.user.id
+            visita.save()
+            return redirect('listar_espacios_obligados_certificante')
+    else:
+        form = VisitaForm()
+    espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
+    
+    return render(request, 'certificante/nueva_visita.html', {'form': form, 'espacio_obligado': espacio_obligado})
+
+def listar_visitas(request, espacio_obligado_id):
+    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id)
+    return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})
+
+
+def listar_espacios_obligados_certificante(request):
+    certificante = Certificante.objects.get(user=request.user)
+    certificante_provincias = certificante.provincias.all()
+
+    espacios_obligados = []
+    for provincia in certificante_provincias:
+        espacios = EspacioObligado.objects.filter(sede__provincia=provincia)
+        # Agrega los espacios obligados a la lista
+        espacios_obligados.extend(espacios)
+
+    print(espacios_obligados)
+
+    return render(request, 'certificante/listar_espacios_obligados.html', {'espacios_obligados': espacios_obligados})
+
+def nueva_visita(request, espacio_obligado_id):
+    if request.method == "POST":
+        form = VisitaForm(request.POST)
+        if form.is_valid():
+            visita = form.save(commit=False)
+            visita.espacio_obligado_id = espacio_obligado_id
+            visita.certificante_id = request.user.id
+            visita.save()
+            return redirect('listar_espacios_obligados_certificante')
+    else:
+        form = VisitaForm()
+    espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
+    
+    return render(request, 'certificante/nueva_visita.html', {'form': form, 'espacio_obligado': espacio_obligado})
+
+def listar_visitas(request, espacio_obligado_id):
+    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id)
+    return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})
 def solicitud_aprobacion(request):
 
     if request.method == 'POST':

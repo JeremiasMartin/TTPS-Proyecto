@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect , get_object_or_404
-from .forms import AdminProvincialForm, RepresentanteForm,CustomPasswordChangeForm
-from .models import Provincias, Usuario, Representante ,AdminProvincial
+from .forms import AdminProvincialForm, RepresentanteForm, UsuarioComunForm, CustomPasswordChangeForm, CertificanteForm
+from .models import Provincias, Usuario, Representante ,AdminProvincial, UsuarioComun, Certificante, Provincias
 from espacios_obligados.models import Sede,EspacioObligado 
 import random
 from django.contrib.auth import authenticate, login, logout as django_logout
@@ -162,6 +162,7 @@ def restDone(request):
 
     return render(request, 'usuario/cambio_de_clave/restablecer_contrasenia_enviado.html')
 
+
 def adminProvincial_signup(request):
     if request.method == 'POST':
         form = RepresentanteForm(request.POST)
@@ -215,19 +216,21 @@ def adminProvincial_signup(request):
         form = AdminProvincialForm()
     return render(request, 'adminProvincial/formAdminProvincial.html', {'form': form})
 
+
 def inicioAdminProvincial(request):
-    
+
     administrador = AdminProvincial.objects.get(user=request.user)
     provincias_asociadas = administrador.provincias.all()
-    sedes_sin_espacio = Sede.objects.filter(espacioobligado__isnull=True).intersection(Sede.objects.filter(provincia__in = provincias_asociadas))
-    return render(request, 'adminProvincial/inicioAdminProvincial.html',{'admin':administrador,'provincias':provincias_asociadas,'espacios':sedes_sin_espacio})
+    sedes_sin_espacio = Sede.objects.filter(espacioobligado__isnull=True).intersection(
+        Sede.objects.filter(provincia__in=provincias_asociadas))
+    return render(request, 'adminProvincial/inicioAdminProvincial.html', {'admin': administrador, 'provincias': provincias_asociadas, 'espacios': sedes_sin_espacio})
+
 
 def cambiar_estado_espacio(request,sede_id):
-
     if request.method == 'POST':
         sede = Sede.objects.get(id=sede_id)
-        espacio=EspacioObligado()
-        espacio.sede=Sede.objects.get(id=sede_id)
+        espacio = EspacioObligado()
+        espacio.sede = Sede.objects.get(id=sede_id)
         if request.POST.get('action') == 'aprobar':
             espacio.estado= 'EN PROCESO'
 
@@ -252,3 +255,120 @@ def modificar_validez(request, provincia_id):
         provincia.validez_certificado = nuevo_validez
         provincia.save()
         return redirect('cambiar_dias_validez')
+
+  
+def usuario_comun_signup(request):
+    if request.method == 'POST':
+        form = UsuarioComunForm(request.POST)
+        if form.is_valid():
+            passwd = ''.join(random.choices(
+                'abcdefghijklmnopqrstuvwxyz0123456789', k=8))
+            email = form.cleaned_data['email']
+            nombre = form.cleaned_data['nombre']
+            apellido = form.cleaned_data['apellido']
+            dni = form.cleaned_data['dni']
+            telefono = form.cleaned_data['telefono']
+
+            usuario = Usuario.objects.create_user(
+                email=email,
+                nombre=nombre,
+                apellido=apellido,
+                dni=dni,
+                telefono=telefono,
+                password=passwd
+            )
+
+            usuarioComun = UsuarioComun.objects.create(
+                user=usuario,
+            )
+
+            subject = '[ResucitAR] Registro de Usuario Exitoso'
+            from_email = 'ResucitAR <%s>' % (settings.EMAIL_HOST_USER)
+            to_email = '%s' % (form.cleaned_data.get('email'))
+            reply_to_email = 'noreply@resucitar.com'
+
+            context = {
+                'nombre': form.cleaned_data.get('nombre'),
+                'password': passwd
+            }
+            text_content = get_template('usuario/mail_bienvenida.txt')
+            html_content = get_template('usuario/mail_bienvenida.html')
+            text_content = text_content.render(context)
+            html_content = html_content.render(context)
+
+            email = EmailMultiAlternatives(subject, text_content, from_email, to=[
+                                           to_email,], reply_to=[reply_to_email,])
+            email.mixed_subtype = 'related'
+            email.content_subtype = 'html'
+            email.attach_alternative(html_content, 'text/html')
+            email.send(fail_silently=False)
+            messages.success(
+                request, 'Registro exitoso. Verifique su correo electronico para obtener su contraseña.')
+
+            return redirect('login')
+    else:
+        form = UsuarioComunForm()
+    return render(request, 'representante/form_representante.html', {'form': form})
+  
+
+def certificante_signup(request):
+    if request.method == 'POST':
+        form = CertificanteForm(request.POST)
+        if form.is_valid():
+            passwd = ''.join(random.choices(
+                'abcdefghijklmnopqrstuvwxyz0123456789', k=8))
+            email = form.cleaned_data['email']
+            nombre = form.cleaned_data['nombre']
+            apellido = form.cleaned_data['apellido']
+            dni = form.cleaned_data['dni']
+            telefono = form.cleaned_data['telefono']
+
+            usuario = Usuario.objects.create_user(
+                email=email,
+                nombre=nombre,
+                apellido=apellido,
+                dni=dni,
+                telefono=telefono,
+                password=passwd
+            )
+
+            # Creo el certificante y le agrego las provincias seleccionadas
+            certificante = Certificante.objects.create(
+                user=usuario,
+            )
+            provincias_seleccionadas = form.cleaned_data['provincias']
+            provincias_ids = [
+                provincia.pk for provincia in provincias_seleccionadas]
+
+            for provincia_id in provincias_ids:
+                provincia = Provincias.objects.get(pk=provincia_id)
+                certificante.provincias.add(provincia)
+
+            subject = '[ResucitAR] Registro de Usuario Exitoso'
+            from_email = 'ResucitAR <%s>' % (settings.EMAIL_HOST_USER)
+            to_email = '%s' % (form.cleaned_data.get('email'))
+            reply_to_email = 'noreply@resucitar.com'
+
+            context = {
+                'nombre': form.cleaned_data.get('nombre'),
+                'password': passwd
+            }
+            text_content = get_template('usuario/mail_bienvenida.txt')
+            html_content = get_template('usuario/mail_bienvenida.html')
+            text_content = text_content.render(context)
+            html_content = html_content.render(context)
+
+            email = EmailMultiAlternatives(subject, text_content, from_email, to=[
+                                           to_email,], reply_to=[reply_to_email,])
+            email.mixed_subtype = 'related'
+            email.content_subtype = 'html'
+            email.attach_alternative(html_content, 'text/html')
+            email.send(fail_silently=False)
+            messages.success(
+                request, 'Registro exitoso. Verifique su correo electronico para obtener su contraseña.')
+
+            return redirect('login')
+    else:
+        form = CertificanteForm()
+        provincias = Provincias.objects.all()
+    return render(request, 'certificante/formCertificante.html', {'form': form, 'provincias': provincias})

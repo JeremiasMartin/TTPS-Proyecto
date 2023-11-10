@@ -3,9 +3,12 @@ from . import views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('registro_representante/', views.representante_signup, name='registro_representante'),
-    path('perfil_representante/', views.perfil_representante, name='perfil_representante'),
-    path('editar_perfil_representante/', views.editar_perfil_representante, name='editar_perfil_representante'),
+    path('registro_representante/', views.representante_signup,
+         name='registro_representante'),
+    path('perfil_representante/', views.perfil_representante,
+         name='perfil_representante'),
+    path('editar_perfil_representante/', views.editar_perfil_representante,
+         name='editar_perfil_representante'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     path('restablecer_contrasenia/', views.restablecer_contraseña, name='Restablecer_contrasenia'),
@@ -21,4 +24,8 @@ urlpatterns = [
     path('cambiar_dias_validez', views.cambiar_dias_validez, name='cambiar_dias_validez'),
     path('modificar_validez/<int:provincia_id>/', views.modificar_validez, name='modificar_validez'),
     
+    path('registro_usuario_comun', views.usuario_comun_signup, name='registro_usuario_comun'),
+    # Usuario certificante
+    path('registro_certificante/', views.certificante_signup,
+         name='registro_certificante'),
 ]

@@ -1,0 +1,134 @@
+{% extends "ProyectoApp/auth/auth.html" %}
+
+{% load static %}{% load crispy_forms_tags %}
+
+{% block title %} Registrar Certificante {% endblock title %}
+
+{% block custom_css %}
+<!-- Select2 -->
+<link rel="stylesheet" href="{% static 'ProyectoApp/vendor/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'ProyectoApp/vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+{% endblock custom_css %}
+
+{% block content %}
+
+{{ block.super }}
+
+<div class="card">
+    <div class="card-body login-card-body">
+        <p class="login-box-msg">Registrese para comenzar</p>
+
+        <form id="login-form" method="POST">
+            {% csrf_token %}
+            <div class="input-group mb-3">
+                {{ form.nombre }}
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-user"></span>
+                    </div>
+                </div>
+                {% if form.nombre.errors %}
+                <p class="small mt-2">
+                    {% for error in form.nombre.errors %}
+                    <span style="color: red;">{{ error }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="input-group mb-3">
+                {{ form.apellido }}
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-user"></span>
+                    </div>
+                </div>
+                {% if form.apellido.errors %}
+                <p class="small mt-2">
+                    {% for error in form.apellido.errors %}
+                    <span style="color: red;">{{ error }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="input-group mb-3">
+                {{ form.email }}
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-envelope"></span>
+                    </div>
+                </div>
+                {% if form.email.errors %}
+                <p class="small mt-2 offset-sm-1">
+                    {% for error in form.email.errors %}
+                    <span style="color: red;">{{ error }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="input-group mb-3">
+                {{ form.dni }}
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-id-card"></span>
+                    </div>
+                </div>
+                {% if form.dni.errors %}
+                <p class="small mt-2 offset-sm-1">
+                    {% for error in form.dni.errors %}
+                    <span style="color: red;">{{ error }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="input-group mb-3">
+                {{ form.telefono }}
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-phone-volume"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group mb-3">
+                <!-- {# <select class="select2" multiple="multiple" data-placeholder="Seleccione provincias"
+                    style="width: 100%;" name="provincias">
+                    {% for provincia in provincias %}
+                    <option value="{{ provincia.provincia_id }}">{{ provincia.nombre }}</option>
+                    {% endfor %}
+                </select> #} -->
+
+                {{ form.provincias }}
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary btn-block mb-3" id="submit-btn">
+                        Registrarse
+                    </button>
+
+                    <a href="{% url 'login' %}">¿Ya posees una cuenta? Inicia sesión aquí</a>
+
+                    <a href="/" class="btn btn-default btn-block mt-3">Volver</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block custom_js %}
+<!-- Select2 -->
+<script src="{% static 'ProyectoApp/vendor/select2/js/select2.full.min.js' %}"></script>
+
+<script>
+    $(function () {
+        //Initialize Select2 Elements
+        $('.select2').select2()
+    })
+</script>
+{% endblock custom_js %}

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Entidad, Sede, Provincias, DEA, HistorialDEA, Responsable, SolicitudAprobacion,EspacioObligado
+from .models import Entidad, Sede, Provincias, DEA, HistorialDEA, Responsable, Visita, SolicitudAprobacion,EspacioObligado
 from leaflet.forms.widgets import LeafletWidget
 from django.contrib.gis.geos import Point
 from django.contrib.gis import forms as gis_forms
@@ -122,6 +122,18 @@ class ResponsableForm(forms.ModelForm):
     class Meta:
         model = Responsable
         fields = ['nombre', 'apellido', 'telefono', 'email']
+
+
+class VisitaForm(forms.ModelForm):
+    class Meta:
+        model = Visita
+        fields = ['fecha_hora', 'observaciones', 'resultado']
+    
+        widgets = {
+            'fecha_hora': forms.DateTimeInput(attrs={'class': 'form-control datetimepicker'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'resultado': forms.Select(attrs={'class': 'form-control'}, choices=[('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')]),
+        }
 
 class SolicitudAprobacionForm(forms.ModelForm):
     entidad_sede = forms.ChoiceField(choices=(), required=True)
