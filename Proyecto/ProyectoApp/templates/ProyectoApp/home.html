@@ -1,69 +1,8 @@
 {% extends "ProyectoApp/base.html" %}
 {% block title %} Home {% endblock title %}
 
-{% load leaflet_tags %}
 {% load static %}
-
-{% block custom_css %}
-{% leaflet_js plugins="forms" %}
-{% leaflet_css plugins="forms" %}
-<script src="https://kit.fontawesome.com/803ea84c99.js" crossorigin="anonymous"></script>
-<style>
-  .custom-icon {
-    font-size: 24px; /* Tamaño del ícono  */
-    color:rgb(73, 149, 255);
-  }
-  .custom-popup .siempre-visible {
-    display: block !important;
-  }
-  .mensaje-no-personal {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 5px;
-    text-align: center;
-    display: block; /* Mostrar el mensaje de forma predeterminada */
-    z-index: 9999; /* Asegurar que el mensaje esté en la capa superior */
-  }
-  .btn-aceptar {
-    background-color: #007bff;
-    color: #ffffff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  #map-container {
-    width: 80%;
-    height: 700px;
-    margin: 0 auto;
-    border: 2px solid #0c3c41;
-    border-radius: 5px;
-    font-family: 'Roboto', sans-serif;
-    font-size: 17px;
-    position: relative;
-  }
-</style>
-{% endblock custom_css %}
 
 {% block content %}
   <div id="map-container"></div>
 {% endblock %}
-
-{% block custom_js %}
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var map = L.map('map-container').setView([-34.9115, -58], 13);
-
-    L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
-      attribution: 'Map data &copy; <a href="https://carto.com/">Carto</a>',
-      subdomains: 'abcd',
-      minZoom: 0,
-      maxZoom: 20,
-    }).addTo(map);
-  });
-</script>
-{% endblock custom_js %}
