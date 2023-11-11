@@ -8,6 +8,9 @@ import requests
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.template.loader import get_template
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 
 # Create your views here.
 
@@ -272,6 +275,57 @@ def listar_deas_activos(request):
     return render(request, 'mapa.html', {'deas': deas})
 
 
+def listar_deas_activos_solidarios(request): 
+    # Filtrar las sedes que tienen DEAs activos y solidarios
+    sedes = Sede.objects.filter(deas_registrados__estado='activo', deas_registrados__solidario=True).distinct()
+    return render(request, 'mapa_deas_solidarios.html', {'sedes': sedes})
+
+
+def notificar_responsables(request, sede_id):
+    print(f"Llamada a notificar_responsables con sede_id={sede_id}")
+    sede = Sede.objects.get(id=sede_id)
+    responsables = sede.responsables.all()
+    # Definir el asunto, remitente, y demás detalles del correo
+    subject = '[ResucitAR] Notificación a Responsables de la Sede'
+    from_email = 'ResucitAR <%s>' % (settings.EMAIL_HOST_USER)
+    reply_to_email = 'noreply@resucitar.com'
+
+    # Plantilla para el contenido del correo
+    text_content = get_template('mail/notificacion_responsables.txt')
+    html_content = get_template('mail/notificacion_responsables.html')
+
+    # Obtener la ubicación del usuario desde la URL
+    user_lat = request.GET.get('user_lat', '')
+    user_lng = request.GET.get('user_lng', '')
+
+    # Iterar sobre los responsables y enviar un correo a cada uno
+    for responsable in responsables:
+        to_email = responsable.email
+
+        context = {
+            'responsable': responsable,
+            'solicitante': request.user,
+            'sede': sede,
+            'user_lat': user_lat,
+            'user_lng': user_lng,
+        }
+
+        text_content_rendered = text_content.render(context)
+        html_content_rendered = html_content.render(context)
+
+        # Crear el objeto de correo electrónico
+        email = EmailMultiAlternatives(subject, text_content_rendered, from_email, to=[to_email,], reply_to=[reply_to_email,])
+        email.mixed_subtype = 'related'
+        email.content_subtype = 'html'
+        email.attach_alternative(html_content_rendered, 'text/html')
+
+        # Enviar el correo
+        email.send(fail_silently=False)
+
+    return redirect('Dash')
+
+
+
 def registrar_responsable(request, sede_id):
     sede = Sede.objects.get(id=sede_id)
     if request.method == 'POST':
@@ -487,3 +541,25 @@ def eliminar_visita(request, visita_id):
     messages.success(request, 'Visita eliminada correctamente.')
     return redirect('listar_visitas', espacio_obligado_id=visita.espacio_obligado_id.id)
     
+
+
+# Muerte Súbita
+def registrar_muerte_subita(request, sede_id):
+    sede = Sede.objects.get(id=sede_id)
+    if request.method == 'POST':
+        form = EventoMuerteSubitaForm(sede, request.POST)
+        if form.is_valid():
+            muerte_subita = form.save(commit=False)
+            muerte_subita.sede_id = sede
+            muerte_subita.representante_id = request.user.representante
+            muerte_subita.save()
+            return redirect('listar_mis_entidades_sedes')
+    else:
+        form = EventoMuerteSubitaForm(sede)
+    return render(request, 'sede/registrar_muerte_subita.html', {'form': form, 'sede': sede})
+
+
+def listar_eventos_muerte_subita(request, sede_id):
+    sede = Sede.objects.get(id=sede_id)
+    eventos = EventoMuerteSubita.objects.filter(sede_id=sede_id)
+    return render(request, 'sede/listar_eventos_muerte_subita.html', {'eventos': eventos, 'sede': sede})

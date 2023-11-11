@@ -1,0 +1,17 @@
+{% extends "ProyectoApp/base.html" %}
+{% load static %}
+{% block content %}
+<style>
+    .form-check-input {
+        margin-left: 10px;
+    }
+</style>
+<h1>Registrar Evento de Muerte Súbita</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <a href="{% url 'listar_mis_entidades_sedes' %}" class="btn btn-primary">Atrás</a>
+    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+</form>
+
+{% endblock %}

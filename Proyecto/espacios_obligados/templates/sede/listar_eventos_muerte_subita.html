@@ -1,0 +1,43 @@
+{% extends "ProyectoApp/base.html" %}
+{% load static %}
+{% block content %}
+  <h1>Eventos de muerte súbita en {{ sede.nombre }}</h1>
+
+  <div class="card-deck">
+    {% for evento in eventos %}
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Fecha: {{ evento.fecha }}</h5>
+          <br><br>
+          <p class="card-text">Sexo: {{ evento.sexo }}</p>
+          <p class="card-text">Edad: {{ evento.edad }}</p>
+          {% if evento.fallecido %}
+            <p class="card-text">Estado: Falleció</p>
+          {% else %}
+            <p class="card-text">Estado: No falleció</p>
+          {% endif %}
+          {% if evento.rcp %}
+            <p class="card-text">RCP: Se realizó RCP por {% if evento.tiempo_rcp %}{{ evento.tiempo_rcp }} minutos{% endif %}</p>
+          {% endif %}
+          {% if evento.dea %}
+            <p class="card-text">DEA: Se utilizó el DEA {{ evento.dea.nombre_representativo }}</p>
+          {% endif %}
+          {% if evento.descarga_electrica %}
+            <p class="card-text">Respondió con descarga eléctrica</p>
+          {% endif %}
+          {% if evento.cantidad_descarga %}
+            <p class="card-text">Cantidad de descarga: {{ evento.cantidad_descarga }}</p>
+          {% endif %}
+          {% if evento.inconveniente %}
+            <p class="card-text">Inconvenientes: {{ evento.inconveniente }}</p>
+          {% endif %}
+          {% if evento.observaciones %}
+            <p class="card-text">Observaciones: {{ evento.observaciones }}</p>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <a href="{% url 'listar_mis_entidades_sedes'%}" class="btn btn-primary mt-3">Atrás</a>
+{% endblock %}

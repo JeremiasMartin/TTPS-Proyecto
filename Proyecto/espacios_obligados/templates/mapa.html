@@ -94,11 +94,8 @@
             <br>
             Nombre: {{dea.nombre_representativo}}
             <br>
-            Es solidario: {% if dea.solidario %} Sí {% else %} No {% endif %}
+            {% if dea.solidario %} Es {% else %} No es {% endif %} solidario
             <br><br>
-            {% if dea.solidario %}
-              <a href='#' class='btn btn-primary siempre-visible' style="font-size:15px; color: white;">Notificar a Responsables</a>
-            {% endif %}
         `);
 
         markers.addLayer(marker);

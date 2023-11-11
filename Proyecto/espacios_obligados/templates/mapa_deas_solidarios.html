@@ -1,0 +1,162 @@
+{% extends 'ProyectoApp/base.html' %}
+{% load leaflet_tags %}
+{% load static %}
+
+{% block content %}
+<head>
+  {% leaflet_js plugins="forms" %}
+  {% leaflet_css plugins="forms" %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <script src="https://kit.fontawesome.com/803ea84c99.js" crossorigin="anonymous"></script>
+  <style>
+    .custom-icon {
+      font-size: 24px; /* Tamaño del ícono  */
+      color: rgb(73, 149, 255);
+    }
+    .custom-popup .siempre-visible {
+      display: block !important;
+    }
+    .mensaje-no-deas {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: center;
+      display: block; /* Mostrar el mensaje de forma predeterminada */
+      z-index: 9999; /* Asegurar que el mensaje esté en la capa superior */
+    }
+    .btn-aceptar {
+      background-color: #007bff;
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #map-container {
+      width: 80%;
+      height: 700px;
+      margin: 0 auto;
+      border: 2px solid #0c3c41;
+      border-radius: 5px;
+      font-family: 'Roboto', sans-serif;
+      font-size: 17px;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <br>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 offset-lg-2 col-xl-12 offset-xl-0 bg-light p-2 my-2">
+        <h1 class="display-5 text-center">Mapa de DEAS Solidarios</h1>
+      </div>
+    </div>
+  </div>  
+  
+  <div id="map-container"></div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var map = L.map('map-container').setView([-34.9115, -58], 13);
+    
+        L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://carto.com/">Carto</a>',
+            subdomains: 'abcd',
+            minZoom: 0,
+            maxZoom: 20,
+        }).addTo(map);
+    
+        {% for sede in sedes %}
+    var lat = "{{ sede.ubicacion.y }}".replace(",", ".");
+    var lng = "{{ sede.ubicacion.x }}".replace(",", ".");
+    var latLng = L.latLng(parseFloat(lat), parseFloat(lng));
+
+    var iconClass = "fa-solid fa-suitcase-medical";
+
+    // Crear el ícono de FontAwesome con el iconClass correspondiente
+    var iconClass = "fa-solid fa-suitcase-medical";
+    var icon = L.divIcon({
+        className: 'custom-icon',
+        html: '<i class="fas ' + iconClass + '"></i>',
+        iconSize: [10, 10],
+    });
+
+    var marker = L.marker(latLng, { icon: icon }).addTo(map);
+
+    // Añadir el ID de la sede como atributo de datos al botón
+    var notificarBtnContainer = document.createElement('div');
+    notificarBtnContainer.innerHTML = '<a href="#" class="btn btn-primary notificar-btn siempre-visible" style="font-size:15px; color: white;" data-sede-id="{{ sede.id }}">Notificar a Responsables</a>';
+
+    // Añadir el botón al popup
+    marker.bindPopup(`
+        <br>
+        Nombre: {{ sede.nombre }}
+    `).on('popupopen', function () {
+        L.DomEvent.disableClickPropagation(notificarBtnContainer);
+        L.DomEvent.on(notificarBtnContainer.querySelector('.notificar-btn'), 'click', function (e) {
+            e.preventDefault();
+
+            // Obtener el ID de la sede del atributo de datos
+            var sedeId = notificarBtnContainer.querySelector('.notificar-btn').dataset.sedeId;
+
+            // Obtener la posición actual del usuario
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    var userLat = position.coords.latitude;
+                    var userLng = position.coords.longitude;
+
+                    // Construir la URL con el ID de la sede y la ubicación del usuario
+                    var url = `/espacios/notificar_responsables/${sedeId}/?user_lat=${userLat}&user_lng=${userLng}`;
+
+                    // Redirigir a la URL construida
+                    window.location.href = url;
+                });
+            }
+        });
+    });
+
+        // Agregar el botón al marcador
+        marker._popup.setContent(notificarBtnContainer);
+    {% endfor %}
+    
+        // Obtener la posición actual del usuario
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                var userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
+                var userMarkerIcon = L.divIcon({
+                    className: 'custom-icon',
+                    html: '<i class="fa-solid fa-location-dot"></i>',
+                    iconSize: [24, 24],
+                });
+                var userMarker = L.marker(userLatLng, { icon: userMarkerIcon }).addTo(map);
+                userMarker.bindPopup("Tu posición actual");
+            });
+        }
+    
+        // Mostrar mensaje si no hay personal registrado
+        {% if not sedes %}
+        var mensajeNoDEAS = document.createElement('div');
+        mensajeNoDEAS.className = 'mensaje-no-deas';
+        mensajeNoDEAS.innerHTML = `
+            <p>No hay DEAs activos registrados.</p>
+            <button class="btn btn-aceptar">Aceptar</button>
+        `;
+        document.getElementById('map-container').appendChild(mensajeNoDEAS);
+    
+        var btnAceptar = mensajeNoDEAS.querySelector('.btn-aceptar');
+        btnAceptar.addEventListener('click', function () {
+            mensajeNoDEAS.style.display = 'none';
+        });
+        {% endif %}
+    });
+    </script>
+       
+</body>
+{% endblock %}

@@ -23,6 +23,8 @@ urlpatterns = [
     path('desactivar_dea/<int:dea_id>/', views.desactivar_dea, name='desactivar_dea'),
     path('eliminar_dea/<int:dea_id>/', views.eliminar_dea, name='eliminar_dea'),
     path('mapa/', views.listar_deas_activos, name='mapa'),
+    path('mapa_solidario/', views.listar_deas_activos_solidarios, name='mapa_solidario'),
+    path('notificar_responsables/<int:sede_id>/', views.notificar_responsables, name='notificar_responsables'),
     path('registrar_servicio_dea/<int:dea_id>/', views.registrar_servicio_dea, name='registrar_servicio_dea'),
     path('listar_reparaciones_dea/<int:dea_id>/', views.listar_reparaciones_dea, name='listar_reparaciones_dea'),
     path('listar_mantenimientos_dea/<int:dea_id>/', views.listar_mantenimientos_dea, name='listar_mantenimientos_dea'),
@@ -42,4 +44,9 @@ urlpatterns = [
      path('certificante/nueva-visita/<int:espacio_obligado_id>', views.nueva_visita, name='nueva_visita'),
      path('certificante/visitas/espacio-obligado/<int:espacio_obligado_id>', views.listar_visitas, name='listar_visitas'),
      path('certificante/visita/<int:visita_id>', views.eliminar_visita, name='eliminar_visita'),
+
+
+     # Muerte Subita
+     path('registrar_muerte_subita/<int:sede_id>/', views.registrar_muerte_subita, name='registrar_muerte_subita'),
+     path('listar_eventos_muerte_subita/<int:sede_id>/', views.listar_eventos_muerte_subita, name='listar_eventos_muerte_subita'),
 ]
