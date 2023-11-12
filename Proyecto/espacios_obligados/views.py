@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
 from .forms import *
 from django.contrib import messages
@@ -7,6 +7,10 @@ from usuarios.models import Representante, Certificante
 import requests
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib import messages
+from django.template.loader import get_template
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 
 # Create your views here.
 
@@ -62,7 +66,7 @@ def listar_mis_entidades_sedes(request):
 
     entidades_sedes = Sede.objects.filter(representantes=representante)
 
-    sedes_aprobadas = EspacioObligado.objects.filter(sede__in=entidades_sedes).exclude(estado='Rechazado') # Capturo las sedes que hayan sido aprobadas (ya son espacios obligados) y su estado no sea "Rechazado"
+    sedes_aprobadas = EspacioObligado.objects.filter(sede__in=entidades_sedes).exclude(estado='RECHAZADO') # Capturo las sedes que hayan sido aprobadas (ya son espacios obligados) y su estado no sea "Rechazado"
 
     return render(request, 'listar_mis_entidades_sedes.html', {'entidades_sedes': sedes_aprobadas})
 
@@ -101,9 +105,9 @@ def declaracion_jurada(request, sede_id):
             sede_espacio = EspacioObligado.objects.get(sede=sede) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
             deas = DEA.objects.filter(dea_sede=sede) # Capturo los deas registrados de la sede para chequear si coinciden con lo declarado en la ddjj
             if ((ddjj.personal_capacitado and ddjj.senaletica and ddjj.protocolo_accion and ddjj.sistema_emergencia) and ddjj.deas_decreto <= len(deas)):
-                sede_espacio.estado = "Cardio Asistido"
+                sede_espacio.estado = "CARDIO ASISTIDO"
             else:
-                sede_espacio.estado = "En Proceso"
+                sede_espacio.estado = "EN PROCESO"
             sede_espacio.save()
             return redirect('listar_mis_entidades_sedes')
     else:
@@ -150,7 +154,7 @@ def registrar_dea(request, sede_id):
             sede_espacio = EspacioObligado.objects.get(sede=sede) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
             # Chequeo que la cantidad de deas registrados coincida con la cantidad declarada en la ddjj
             if ((sede.personal_capacitado and sede.senaletica and sede.protocolo_accion and sede.sistema_emergencia) and sede.deas_decreto <= len(deas)):
-                sede_espacio.estado = "Cardio Asistido"
+                sede_espacio.estado = "CARDIO ASISTIDO"
                 sede_espacio.save()
 
 
@@ -226,9 +230,9 @@ def eliminar_dea(request, dea_id):
         sede_espacio = EspacioObligado.objects.get(sede__id=sede_id) # Capturo el espacio obligado para poder modificar su estado si la ddjj está aprobada
         # Chequeo que la cantidad de deas registrados coincida con la cantidad declarada en la ddjj
         if((sede_espacio.sede.personal_capacitado and sede_espacio.sede.senaletica and sede_espacio.sede.protocolo_accion and sede_espacio.sede.sistema_emergencia) and sede_espacio.sede.deas_decreto <= len(deas)):
-            sede_espacio.estado = "Cardio Asistido"
+            sede_espacio.estado = "CARDIO ASISTIDO"
         else:
-            sede_espacio.estado = "En Proceso"
+            sede_espacio.estado = "EN PROCESO"
         sede_espacio.save()
         
 
@@ -269,6 +273,57 @@ def listar_mantenimientos_dea(request, dea_id):
 def listar_deas_activos(request):
     deas = DEA.objects.filter(estado='activo')
     return render(request, 'mapa.html', {'deas': deas})
+
+
+def listar_deas_activos_solidarios(request): 
+    # Filtrar las sedes que tienen DEAs activos y solidarios
+    sedes = Sede.objects.filter(deas_registrados__estado='activo', deas_registrados__solidario=True).distinct()
+    return render(request, 'mapa_deas_solidarios.html', {'sedes': sedes})
+
+
+def notificar_responsables(request, sede_id):
+    print(f"Llamada a notificar_responsables con sede_id={sede_id}")
+    sede = Sede.objects.get(id=sede_id)
+    responsables = sede.responsables.all()
+    # Definir el asunto, remitente, y demás detalles del correo
+    subject = '[ResucitAR] Notificación a Responsables de la Sede'
+    from_email = 'ResucitAR <%s>' % (settings.EMAIL_HOST_USER)
+    reply_to_email = 'noreply@resucitar.com'
+
+    # Plantilla para el contenido del correo
+    text_content = get_template('mail/notificacion_responsables.txt')
+    html_content = get_template('mail/notificacion_responsables.html')
+
+    # Obtener la ubicación del usuario desde la URL
+    user_lat = request.GET.get('user_lat', '')
+    user_lng = request.GET.get('user_lng', '')
+
+    # Iterar sobre los responsables y enviar un correo a cada uno
+    for responsable in responsables:
+        to_email = responsable.email
+
+        context = {
+            'responsable': responsable,
+            'solicitante': request.user,
+            'sede': sede,
+            'user_lat': user_lat,
+            'user_lng': user_lng,
+        }
+
+        text_content_rendered = text_content.render(context)
+        html_content_rendered = html_content.render(context)
+
+        # Crear el objeto de correo electrónico
+        email = EmailMultiAlternatives(subject, text_content_rendered, from_email, to=[to_email,], reply_to=[reply_to_email,])
+        email.mixed_subtype = 'related'
+        email.content_subtype = 'html'
+        email.attach_alternative(html_content_rendered, 'text/html')
+
+        # Enviar el correo
+        email.send(fail_silently=False)
+
+    return redirect('Dash')
+
 
 
 def registrar_responsable(request, sede_id):
@@ -383,72 +438,7 @@ def rechazar_solicitud(request, solicitud_id):
     solicitud.save()
     return redirect('lista_solicitudes_pendientes')
 
-def listar_espacios_obligados_certificante(request):
-    certificante = Certificante.objects.get(user=request.user)
-    certificante_provincias = certificante.provincias.all()
 
-    espacios_obligados = []
-    for provincia in certificante_provincias:
-        espacios = EspacioObligado.objects.filter(sede__provincia=provincia)
-        # Agrega los espacios obligados a la lista
-        espacios_obligados.extend(espacios)
-
-    print(espacios_obligados)
-
-    return render(request, 'certificante/listar_espacios_obligados.html', {'espacios_obligados': espacios_obligados})
-
-def nueva_visita(request, espacio_obligado_id):
-    if request.method == "POST":
-        form = VisitaForm(request.POST)
-        if form.is_valid():
-            visita = form.save(commit=False)
-            visita.espacio_obligado_id = espacio_obligado_id
-            visita.certificante_id = request.user.id
-            visita.save()
-            return redirect('listar_espacios_obligados_certificante')
-    else:
-        form = VisitaForm()
-    espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
-    
-    return render(request, 'certificante/nueva_visita.html', {'form': form, 'espacio_obligado': espacio_obligado})
-
-def listar_visitas(request, espacio_obligado_id):
-    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id)
-    return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})
-
-
-def listar_espacios_obligados_certificante(request):
-    certificante = Certificante.objects.get(user=request.user)
-    certificante_provincias = certificante.provincias.all()
-
-    espacios_obligados = []
-    for provincia in certificante_provincias:
-        espacios = EspacioObligado.objects.filter(sede__provincia=provincia)
-        # Agrega los espacios obligados a la lista
-        espacios_obligados.extend(espacios)
-
-    print(espacios_obligados)
-
-    return render(request, 'certificante/listar_espacios_obligados.html', {'espacios_obligados': espacios_obligados})
-
-def nueva_visita(request, espacio_obligado_id):
-    if request.method == "POST":
-        form = VisitaForm(request.POST)
-        if form.is_valid():
-            visita = form.save(commit=False)
-            visita.espacio_obligado_id = espacio_obligado_id
-            visita.certificante_id = request.user.id
-            visita.save()
-            return redirect('listar_espacios_obligados_certificante')
-    else:
-        form = VisitaForm()
-    espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
-    
-    return render(request, 'certificante/nueva_visita.html', {'form': form, 'espacio_obligado': espacio_obligado})
-
-def listar_visitas(request, espacio_obligado_id):
-    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id)
-    return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})
 def solicitud_aprobacion(request):
 
     if request.method == 'POST':
@@ -498,22 +488,78 @@ def lista_solicitudes_pendientes(request):
     solicitudes_pendientes = SolicitudAprobacion.objects.filter(aprobado=False)
     return render(request, 'lista_solicitudes_pendientes.html', {'solicitudes_pendientes': solicitudes_pendientes})
 
-def aprobar_solicitud(request, solicitud_id):
-    if not request.user.is_authenticated or not request.user.adminprovincial:
-        return HttpResponseForbidden("No tienes permisos para realizar esta acción.")
-    
-    solicitud = get_object_or_404(SolicitudAprobacion, pk=solicitud_id)
-    solicitud.aprobado = True
-    solicitud.aprobado_por = request.user.adminprovincial
-    solicitud.save()
-    return redirect('lista_solicitudes_pendientes')
+# MODULO CERTIFICANTE
+def listar_espacios_obligados_certificante(request):
+    certificante = Certificante.objects.get(user=request.user)
+    certificante_provincias = certificante.provincias.all()
 
-def rechazar_solicitud(request, solicitud_id):
-    if not request.user.is_authenticated or not request.user.adminprovincial:
-        return HttpResponseForbidden("No tienes permisos para realizar esta acción.")
-    
-    solicitud = get_object_or_404(SolicitudAprobacion, pk=solicitud_id)
-    solicitud.aprobado = False
+    espacios_obligados = []
+    for provincia in certificante_provincias:
+        espacios = EspacioObligado.objects.filter(sede__provincia=provincia)
+        # Agrega los espacios obligados a la lista
+        espacios_obligados.extend(espacios)
 
-    solicitud.save()
-    return redirect('lista_solicitudes_pendientes')
+    return render(request, 'certificante/listar_espacios_obligados.html', {'espacios_obligados': espacios_obligados})
+
+# VISITA USUARIO CERTIFICANTE
+def nueva_visita(request, espacio_obligado_id):
+    if request.method == "POST":
+        form = VisitaForm(request.POST)
+        if form.is_valid():
+            visita = form.save(commit=False)
+            espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
+            visita.espacio_obligado_id = espacio_obligado
+            certificante = Certificante.objects.get(user=request.user)
+            visita.certificante_id = certificante
+            visita.save()
+            if visita.resultado == 'aprobado':
+                espacio_obligado.estado = 'CARDIO ASISTIDO CERTIFICADO'
+                espacio_obligado.save()
+            else:
+                espacio_obligado.estado = 'CARDIO ASISTIDO'
+                espacio_obligado.save()
+            messages.success(request, 'Visita registrada correctamente.')
+            return redirect('listar_espacios_obligados_certificante')
+    else:
+        form = VisitaForm()
+    espacio_obligado = EspacioObligado.objects.get(id=espacio_obligado_id)
+    
+    return render(request, 'certificante/nueva_visita.html', {'form': form, 'espacio_obligado': espacio_obligado})
+
+def listar_visitas(request, espacio_obligado_id):
+    visitas = Visita.objects.filter(espacio_obligado_id=espacio_obligado_id).order_by('-fecha_hora')
+    return render(request, 'certificante/listar_visitas.html', {'visitas': visitas})
+
+
+def eliminar_visita(request, visita_id):
+    visita = Visita.objects.get(id=visita_id)
+    if request.method == 'POST':
+        espacio_obligado = EspacioObligado.objects.get(id=visita.espacio_obligado_id.id)
+        espacio_obligado.estado = 'CARDIO ASISTIDO'
+        espacio_obligado.save()
+        visita.delete()
+    messages.success(request, 'Visita eliminada correctamente.')
+    return redirect('listar_visitas', espacio_obligado_id=visita.espacio_obligado_id.id)
+    
+
+
+# Muerte Súbita
+def registrar_muerte_subita(request, sede_id):
+    sede = Sede.objects.get(id=sede_id)
+    if request.method == 'POST':
+        form = EventoMuerteSubitaForm(sede, request.POST)
+        if form.is_valid():
+            muerte_subita = form.save(commit=False)
+            muerte_subita.sede_id = sede
+            muerte_subita.representante_id = request.user.representante
+            muerte_subita.save()
+            return redirect('listar_mis_entidades_sedes')
+    else:
+        form = EventoMuerteSubitaForm(sede)
+    return render(request, 'sede/registrar_muerte_subita.html', {'form': form, 'sede': sede})
+
+
+def listar_eventos_muerte_subita(request, sede_id):
+    sede = Sede.objects.get(id=sede_id)
+    eventos = EventoMuerteSubita.objects.filter(sede_id=sede_id)
+    return render(request, 'sede/listar_eventos_muerte_subita.html', {'eventos': eventos, 'sede': sede})

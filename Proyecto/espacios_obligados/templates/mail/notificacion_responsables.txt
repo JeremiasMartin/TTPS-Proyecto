@@ -1,0 +1,10 @@
+¡{{ responsable.nombre }}, hay un solicitante de DEA!
+
+El solicitante es {{ solicitante.nombre }} {{solicitante.apellido}}.
+Su DNI es {{ solicitante.dni }}.
+Su teléfono es {{ solicitante.telefono }}.
+Su email es {{ solicitante.email }}.
+
+Su ubicación es {{ user_lat}}, {{ user_lng }}
+
+ResucitAR

@@ -99,5 +99,17 @@ class Visita(models.Model):
     espacio_obligado_id = models.ForeignKey(EspacioObligado, on_delete=models.CASCADE)
     certificante_id = models.ForeignKey(Certificante, on_delete=models.CASCADE, null=True, blank=True)
 
-    def __str__(self):
-        return self.fecha_hora
+class EventoMuerteSubita(models.Model):
+    fecha = models.DateField()
+    sexo = models.CharField(max_length=20, choices=[('masculino', 'Masculino'), ('femenino', 'Femenino'), ('otro', 'Otro')])
+    edad = models.IntegerField()
+    fallecido = models.BooleanField(default=False)
+    rcp = models.BooleanField(default=False)
+    tiempo_rcp = models.IntegerField(null=True, blank=True)
+    dea = models.ForeignKey(DEA, on_delete=models.CASCADE, null=True, blank=True)
+    inconveniente = models.CharField(max_length=250, blank=True, null=True)
+    descarga_electrica = models.BooleanField(default=False)
+    cantidad_descarga = models.IntegerField(null=True, blank=True)
+    observaciones = models.TextField(null=True, blank=True)
+    sede_id = models.ForeignKey(Sede, on_delete=models.CASCADE)
+    representante_id = models.ForeignKey(Representante, on_delete=models.CASCADE)

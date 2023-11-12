@@ -9,6 +9,8 @@
             <a href="{% url 'administrar_entidad_sede' espacio.sede.id %}" class="btn btn-primary">Administrar</a>
             <a href="{% url 'registrar_responsable' espacio.sede.id %}" class="btn btn-primary">Registrar Responsable</a>
             <a href="{% url 'listar_responsables' espacio.sede.id %}" class="btn btn-primary">Listar Responsables</a>
+            <a href="{% url 'registrar_muerte_subita' espacio.sede.id %}" class="btn btn-primary">Registrar Evento de Muerte Súbita</a>
+            <a href="{% url 'listar_eventos_muerte_subita' espacio.sede.id %}" class="btn btn-primary">Ver Eventos registrados</a>
             <div class="btn btn-warning">
                 Estado: {{ espacio.estado }}
             </div>
