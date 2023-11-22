@@ -1,4 +1,4 @@
-¡{{ certificante.nombre }}, la certificación de la sede sede.nombre vence hoy!
+¡{{ certificante.nombre }}, la certificación de la sede {{ sede.nombre }} vence hoy!
 
 La última visita se realizó el {{ visita.fecha_hora }}.
 Recuerda que para renovarla debes ingresar a la plataforma y realizar el proceso de renovación.

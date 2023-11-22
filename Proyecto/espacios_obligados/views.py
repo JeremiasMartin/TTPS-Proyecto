@@ -16,6 +16,7 @@ import threading
 import time
 from datetime import datetime
 from datetime import timedelta
+from django.utils import timezone
 
 
 def registrar_entidad(request):
@@ -520,15 +521,19 @@ def nueva_visita(request, espacio_obligado_id):
                 espacio_obligado.save()
 
                 # Comienzo a configurar el CRON
-                hoy = datetime.now()
-                validez_certificado = espacio_obligado.sede_id.provincia_id.validez_certificado
-
+                # Obtener la fecha y hora actual en la zona horaria configurada en Django
+                fecha_hoy = timezone.localtime().replace(tzinfo=None)
+                validez_certificado = espacio_obligado.sede.provincia.validez_certificado
+                fecha_visita = visita.fecha_hora.replace(tzinfo=None)
                 # Obtengo la fecha de vencimiento de la certificación
-                if visita.fecha_hora + timedelta(days=validez_certificado) == hoy:
-                
+                fecha_vencimiento = fecha_visita + timedelta(days=validez_certificado)
+                hora_recordatorio = fecha_vencimiento
+
+                # Comparación de fechas
+                if fecha_vencimiento <= fecha_hoy:
+                    print("se envia hoy", fecha_vencimiento.strftime('%H:%M'))
                     # Si la fecha de vencimiento es hoy, envío un correo al usuario certificante
-                    schedule.every().day.at(hoy.strftime('%H:%M')).do(enviar_recordatorio, certificante, visita, espacio_obligado)
-                
+                    schedule.every().day.at(fecha_vencimiento.strftime('%H:%M')).do(enviar_recordatorio, certificante, visita, espacio_obligado)
                 # Ejecutar las tareas pendientes en el objeto `schedule.jobs`
                 if not schedule.jobs:
                     threading.Thread(target=run_scheduler, daemon=True).start()
@@ -599,7 +604,7 @@ def enviar_recordatorio(certificante, visita, espacio_obligado):
     subject = '[ResucitAR] Notificación de Vencimiento de Certificación'
     from_email = 'ResucitAR <%s>' % (settings.EMAIL_HOST_USER)
     reply_to_email = 'noreply@resucitar.com'
-    to_email = certificante.email
+    to_email = certificante.user.email
 
     # Plantilla para el contenido del correo
     text_content = get_template('mail/vencimiento_certificacion.txt')
