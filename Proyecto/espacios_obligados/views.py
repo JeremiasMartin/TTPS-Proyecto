@@ -11,8 +11,11 @@ from django.contrib import messages
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-
-# Create your views here.
+import schedule
+import threading
+import time
+from datetime import datetime
+from datetime import timedelta
 
 
 def registrar_entidad(request):
@@ -515,6 +518,23 @@ def nueva_visita(request, espacio_obligado_id):
             if visita.resultado == 'aprobado':
                 espacio_obligado.estado = 'CARDIO ASISTIDO CERTIFICADO'
                 espacio_obligado.save()
+
+                # Comienzo a configurar el CRON
+                hoy = datetime.now()
+                validez_certificado = espacio_obligado.sede_id.provincia_id.validez_certificado
+
+                # Obtengo la fecha de vencimiento de la certificación
+                if visita.fecha_hora + timedelta(days=validez_certificado) == hoy:
+                
+                    # Si la fecha de vencimiento es hoy, envío un correo al usuario certificante
+                    schedule.every().day.at(hoy.strftime('%H:%M')).do(enviar_recordatorio, certificante, visita, espacio_obligado)
+                
+                # Ejecutar las tareas pendientes en el objeto `schedule.jobs`
+                if not schedule.jobs:
+                    threading.Thread(target=run_scheduler, daemon=True).start()
+                # Finaliza CRON
+        
+
             else:
                 espacio_obligado.estado = 'CARDIO ASISTIDO'
                 espacio_obligado.save()
@@ -563,3 +583,42 @@ def listar_eventos_muerte_subita(request, sede_id):
     sede = Sede.objects.get(id=sede_id)
     eventos = EventoMuerteSubita.objects.filter(sede_id=sede_id)
     return render(request, 'sede/listar_eventos_muerte_subita.html', {'eventos': eventos, 'sede': sede})
+
+
+
+def run_scheduler():
+    # Función que ejecuta el planificador en un bucle continuo
+    while True:
+        ("entra al run scheduler")
+        schedule.run_pending()
+        time.sleep(1)  # Pausa para evitar consumo excesivo de recursos
+
+
+def enviar_recordatorio(certificante, visita, espacio_obligado):
+
+    subject = '[ResucitAR] Notificación de Vencimiento de Certificación'
+    from_email = 'ResucitAR <%s>' % (settings.EMAIL_HOST_USER)
+    reply_to_email = 'noreply@resucitar.com'
+    to_email = certificante.email
+
+    # Plantilla para el contenido del correo
+    text_content = get_template('mail/vencimiento_certificacion.txt')
+    html_content = get_template('mail/vencimiento_certificacion.html')
+
+    context = {
+        'visita': visita,
+        'certificante': certificante,
+        'sede': espacio_obligado.sede_id,
+    }
+
+    text_content_rendered = text_content.render(context)
+    html_content_rendered = html_content.render(context)
+
+    # Crear el objeto de correo electrónico
+    email = EmailMultiAlternatives(subject, text_content_rendered, from_email, to=[to_email,], reply_to=[reply_to_email,])
+    email.mixed_subtype = 'related'
+    email.content_subtype = 'html'
+    email.attach_alternative(html_content_rendered, 'text/html')
+
+    # Enviar el correo
+    email.send(fail_silently=False)
