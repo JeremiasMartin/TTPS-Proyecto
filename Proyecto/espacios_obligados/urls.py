@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+import threading
 
 urlpatterns = [
     path('registrar_entidad/', views.registrar_entidad, name='registrar_entidad'),
@@ -50,3 +51,7 @@ urlpatterns = [
      path('registrar_muerte_subita/<int:sede_id>/', views.registrar_muerte_subita, name='registrar_muerte_subita'),
      path('listar_eventos_muerte_subita/<int:sede_id>/', views.listar_eventos_muerte_subita, name='listar_eventos_muerte_subita'),
 ]
+
+
+# Iniciar el hilo que ejecuta el planificador al iniciar la aplicación (chequeo de vencimiento de ertificaciones)
+threading.Thread(target=views.run_scheduler, daemon=True).start()
