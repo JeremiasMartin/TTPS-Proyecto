@@ -16,6 +16,14 @@
     <button type="submit" class="btn btn-primary">Guardar Sede</button>
   </form>
   <br><br>
+  {% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li{% if message.tags %} class="alert alert-danger"{% endif %}>{{ message|slice:"2:" }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+  <br><br>
   <h2>Sedes Registradas para {{ entidad.razon_social }}:</h2>
   <ul>
     {% for sede in sedes %}
