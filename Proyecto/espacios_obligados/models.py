@@ -44,6 +44,7 @@ class EspacioObligado(models.Model):
     estado = models.CharField(max_length=100,default='EN PROCESO')  # Agregando el campo estado
     sede = models.ForeignKey(Sede, on_delete=models.CASCADE)
     motivo= models.TextField(blank=True,default='')
+    fecha_creacion = models.DateField(auto_now_add=True)
     def __str__(self):
         return f'!nombre sede {self.sede.nombre} y estado{self.estado}'
 
