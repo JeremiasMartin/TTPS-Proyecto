@@ -14,6 +14,7 @@ import ssl
 import geopy.geocoders
 from geopy.geocoders import Nominatim
 from django.contrib.gis.geos import Point
+import time
 
 
 class Command(BaseCommand):
@@ -88,10 +89,11 @@ class Command(BaseCommand):
         ctx = ssl.create_default_context(cafile=certifi.where())
         geopy.geocoders.options.default_ssl_context = ctx
         fake = Faker("es_AR")
-        num_registros = 1
+        num_registros = 100
 
         for _ in range(num_registros):
             provincia, direccion, ubicacion = self.generar_datos_ubicacion()
+            time.sleep(2)
 
             sede = Sede.objects.create(
                 nombre=fake.company(),
