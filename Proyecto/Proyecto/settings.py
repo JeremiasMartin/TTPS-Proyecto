@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'crispy_forms',
     'espacios_obligados',
+    'datawarehouse',
 ]
 
 MIDDLEWARE = [
