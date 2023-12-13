@@ -91,6 +91,9 @@ class Command(BaseCommand):
         fake = Faker("es_AR")
         num_registros = 100
 
+        representantes = Representante.objects.all()
+
+
         for _ in range(num_registros):
             provincia, direccion, ubicacion = self.generar_datos_ubicacion()
             time.sleep(2)
@@ -123,6 +126,7 @@ class Command(BaseCommand):
                     ),
                 ),
             )
+            sede.representantes.add(random.choice(representantes))
 
             sede.save()
 
