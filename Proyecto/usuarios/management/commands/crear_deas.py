@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from espacios_obligados.models import DEA
+from espacios_obligados.models import DEA, Sede
 from faker import Faker
 import random
 
@@ -19,16 +19,18 @@ class Command(BaseCommand):
             {"marca": "Defibtech", "modelos": ["Emisquissi", "Unumircult", "Geniectorr", "Rogabilien", "Obiquanter"]},
         ]
 
+        sedes = Sede.objects.all()
+
         for dea in deas:
             for modelo in dea["modelos"]:
                 DEA.objects.create(
                     marca=dea["marca"],
                     modelo=modelo,
                     numero_serie=random.randint(10000000000, 99999999999),
-                    nombre_representativo=fake.name(),
+                    nombre_representativo=fake.company(),
                     solidario=random.choice([True, False]),
                     estado=random.choice(["activo", "inactivo"]),
-                    dea_sede_id=random.randint(1, 100)
+                    dea_sede_id=random.choice(sedes)
                 )
 
         self.stdout.write(self.style.SUCCESS(f"Se generaron y guardaron {len(deas)} registros en la tabla DEA"))
