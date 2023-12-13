@@ -94,7 +94,15 @@ DATABASES = {
         'PASSWORD': config('PASSWORD'),
         'HOST': config('HOST'),
         'PORT': config('PORT'),
-    }
+    },
+    'data_warehouse': {
+        'ENGINE': config('ENGINE'),
+        'NAME': 'datawarehouse',
+        'USER': config('USER'),
+        'PASSWORD': config('PASSWORD'),
+        'HOST': config('HOST'),
+        'PORT': config('PORT'),
+    },
 }
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
