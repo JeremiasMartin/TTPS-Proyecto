@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         fake = Faker('es_AR')
-        num_registros = 1
+        num_registros = 100
 
         for _ in range(num_registros):
             # Generar datos falsos
@@ -28,5 +28,7 @@ class Command(BaseCommand):
                 telefono=telefono,
                 email=email
             )
+
+            sede.responsables.add(responsable)
 
             self.stdout.write(self.style.SUCCESS(f'Se generó y guardó el Responsable: {responsable}'))
