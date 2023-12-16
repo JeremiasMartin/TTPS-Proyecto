@@ -19,23 +19,24 @@ import time
 
 class Command(BaseCommand):
     help = "Populate Sedes data"
-    
+
+
     @staticmethod
-    def obtener_ciudad_desde_coordenadas(latitud, longitud):
+    def obtener_localidad_desde_coordenadas(latitud, longitud):
         geolocator = Nominatim(user_agent="my_app")
         location = geolocator.reverse((latitud, longitud), language="es")
 
         ciudad = None
-        if location and location.address:
-            # Buscar la ciudad en diferentes partes de la dirección inversa
-            for part in location.address.split(","):
-                if "city" in part.lower():
-                    ciudad = part.strip()
-                    break
-            else:
-                ciudad = location.address.split(",")[0].strip()
+        codigo_postal = None
+
+        if location:
+            # intenta obtener el código postal directamente de 'address'
+            address_info = location.raw.get("address", {})
+            ciudad = location.raw.get("display_name", "").split(",")[0]
 
         return ciudad or "Ciudad Desconocida"
+
+
 
     def generar_datos_ubicacion(self):
         # Lista de provincias en Argentina
@@ -72,10 +73,12 @@ class Command(BaseCommand):
         geolocator = Nominatim(user_agent="my_app")
 
         # Obtener información de geolocalización para la provincia
-        location = geolocator.geocode(f"{provincia}, Argentina", language="es")
+        location = geolocator.geocode(f"{provincia}, Argentina", language="es", timeout=10)
 
         # Extraer información relevante
-        ciudad = self.obtener_ciudad_desde_coordenadas(location.latitude, location.longitude)
+        ciudad = self.obtener_localidad_desde_coordenadas(
+            location.latitude, location.longitude
+        )
         direccion = f"{ciudad}, {provincia}"
         latitud = location.latitude if location else 0.0
         longitud = location.longitude if location else 0.0
@@ -92,7 +95,6 @@ class Command(BaseCommand):
         num_registros = 100
 
         representantes = Representante.objects.all()
-
 
         for _ in range(num_registros):
             provincia, direccion, ubicacion = self.generar_datos_ubicacion()
