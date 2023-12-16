@@ -95,15 +95,17 @@ DATABASES = {
         'HOST': config('HOST'),
         'PORT': config('PORT'),
     },
-    'data_warehouse': {
+    'datawarehouse': {
         'ENGINE': config('ENGINE'),
-        'NAME': 'datawarehouse',
+        'NAME': config('NAME2'),
         'USER': config('USER'),
         'PASSWORD': config('PASSWORD'),
         'HOST': config('HOST'),
         'PORT': config('PORT'),
     },
 }
+
+DATABASE_ROUTERS = ['datawarehouse.routers.DataWarehouseRouter']
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
