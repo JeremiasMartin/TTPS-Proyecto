@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         fake = Faker('es_AR')
-        num_registros = 100
+        num_registros = 1000
 
         # Obtener todas las sedes existentes
         sedes_disponibles = list(Sede.objects.all())
@@ -25,7 +25,8 @@ class Command(BaseCommand):
             espacio_obligado = EspacioObligado.objects.create(
                 estado=random.choice(["CARDIO ASISTIDO CERTIFICADO", "EN PROCESO", "CARDIO ASISTIDO", "CARDIO ASISTIDO CON CERTIFICADO VENCIDO"]),
                 motivo=fake.text(),
-                sede=sede
+                sede=sede,
+                fecha_creacion=fake.date_between(start_date='-1y', end_date='today')
             )
 
             # Eliminar la sede seleccionada de las sedes disponibles, 
