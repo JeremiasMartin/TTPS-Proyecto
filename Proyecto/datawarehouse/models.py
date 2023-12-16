@@ -1,80 +1,73 @@
 from django.db import models
-from django.contrib.gis.db import models as gis_models
 
-class EntidadDW(models.Model):
-    razon_social = models.CharField(max_length=200)
-    cuit = models.CharField(max_length=200)
-    sector = models.CharField(max_length=200)
-    tipo = models.CharField(max_length=200)
 
-    class Meta:
-        app_label = 'datawarehouse'
+class DimFechaLog(models.Model):
+    idFechaLog = models.AutoField(primary_key=True)
+    dia = models.IntegerField()
+    mes = models.IntegerField()
+    anho = models.IntegerField()
 
-    def __str__(self):
-        return self.razon_social
+class DimFechaCreacion(models.Model):
+    idFechaCreacion = models.AutoField(primary_key=True)
+    dia = models.IntegerField()
+    mes = models.IntegerField()
+    anho = models.IntegerField()
 
-class SedeDW(models.Model):
-    nombre = models.CharField(max_length=200)
-    ubicacion = gis_models.PointField()
-    direccion = models.CharField(max_length=200)
-    entidad = models.ForeignKey(EntidadDW, on_delete=models.CASCADE)
-    representantes = models.ManyToManyField('RepresentanteDW', blank=True, related_name='representantes')
+class DimFechaEventoMS(models.Model):
+    idFechaEvento = models.AutoField(primary_key=True)
+    dia = models.IntegerField()
+    mes = models.IntegerField()
+    anho = models.IntegerField()
 
-    class Meta:
-        app_label = 'datawarehouse'
-
-    def __str__(self):
-        return '%s , %s' % (self.nombre, self.entidad)
-
-class EspacioObligadoDW(models.Model):
-    estado = models.CharField(max_length=100, default='EN PROCESO')
-    sede = models.ForeignKey(SedeDW, on_delete=models.CASCADE)
-    motivo = models.TextField(blank=True, default='')
-    fecha_creacion = models.DateField(auto_now_add=True)
-
-    class Meta:
-        app_label = 'datawarehouse'
-
-    def __str__(self):
-        return f'!nombre sede {self.sede.nombre} y estado{self.estado}'
-
-class DEADW(models.Model):
-    marca = models.CharField(max_length=200)
-    modelo = models.CharField(max_length=200)
-    solidario = models.BooleanField(default=False)
-    estado = models.CharField(max_length=10, choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')], default='activo')
-
-    class Meta:
-        app_label = 'datawarehouse'
-
-    def __str__(self):
-        return self.nombre_representativo
-
-class EventoMuerteSubitaDW(models.Model):
-    fecha = models.DateField()
-    observaciones = models.TextField()
-    resultado = models.CharField(max_length=20, choices=[('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')])
-    sede_id = models.ForeignKey(SedeDW, on_delete=models.CASCADE)
-
-    class Meta:
-        app_label = 'datawarehouse'
-
-    def __str__(self):
-        return f'Evento en {self.sede.nombre} el {self.fecha}'
+class DimEstado(models.Model):
+    idEstado = models.AutoField(primary_key=True)
+    nombreEstado = models.CharField(max_length=100)
+    fecha_creacion = models.ForeignKey(DimFechaLog, on_delete=models.CASCADE)
+    idSede = models.ForeignKey('DimSede', on_delete=models.CASCADE)
     
-class RepresentanteDW(models.Model):
-    nombre = models.CharField(max_length=200)
-    apellido = models.CharField(max_length=200)
-    dni = models.CharField(max_length=200)
-    telefono = models.CharField(max_length=200)
-    email = models.CharField(max_length=200)
-    sede_id = models.ForeignKey(SedeDW, on_delete=models.CASCADE)
 
-    class Meta:
-        app_label = 'datawarehouse'
-        
-    def __str__(self):
-        return self.nombre
+class DimSede(models.Model):
+    idTipoSede = models.AutoField(primary_key=True)
+    tipo = models.CharField(max_length=100)
+    fecha_creacion = models.ForeignKey(DimFechaCreacion, on_delete=models.CASCADE)
+    idLugar = models.ForeignKey('DimLugar', on_delete=models.CASCADE)
+    idEstado = models.ForeignKey(DimEstado, null=True, blank=True, on_delete=models.CASCADE)
 
-# Otros modelos como RepresentanteDW, ProvinciasDW, CertificanteDW pueden ser agregados según sea necesario.
+class DimLugar(models.Model):
+    idLugar = models.AutoField(primary_key=True)
+    provincia = models.CharField(max_length=100)
+    ciudad = models.CharField(max_length=100)
 
+
+# Representante con que tabla debe asociarse?
+# class DimRepresentante(models.Model):
+#     idRepresentante = models.AutoField(primary_key=True)
+#     fecha_nacimiento = models.DateField()
+
+class DimDEA(models.Model):
+    idDEA = models.AutoField(primary_key=True)
+    marca = models.CharField(max_length=100)
+    modelo = models.CharField(max_length=100)
+    idSede = models.ForeignKey(DimSede, on_delete=models.CASCADE)
+
+class DimMuerteSubita(models.Model):
+    idMuerteSubita = models.AutoField(primary_key=True)
+    sexo = models.CharField(max_length=1, choices=[("M", "Masculino"), ("F", "Femenino"), ("O", "Otro")])
+    edad = models.IntegerField()
+    idSede = models.ForeignKey(DimSede, on_delete=models.CASCADE)
+    idFecha = models.ForeignKey(DimFechaEventoMS, on_delete=models.CASCADE)
+    inSitu = models.BooleanField(default=False)
+    dea = models.ForeignKey(DimDEA, null=True, blank=True, on_delete=models.CASCADE)
+    
+
+
+class Hechos(models.Model):
+    idHecho = models.AutoField(primary_key=True)
+    idEstado = models.ForeignKey(DimEstado, on_delete=models.CASCADE)
+    idSede = models.ForeignKey(DimSede, on_delete=models.CASCADE)
+    idLugar = models.ForeignKey(DimLugar, on_delete=models.CASCADE)
+    cantEspaciosObligados = models.IntegerField()
+    cantDeas = models.IntegerField()
+    cantDEAsSolidarios = models.IntegerField()
+    cantMuertesSubitas = models.IntegerField()
+    cantMuertesInSitu = models.IntegerField()
