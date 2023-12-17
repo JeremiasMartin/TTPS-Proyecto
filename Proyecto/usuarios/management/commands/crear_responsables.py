@@ -3,12 +3,13 @@ from espacios_obligados.models import Sede, Responsable
 from faker import Faker
 import random
 
+
 class Command(BaseCommand):
-    help = 'Populate Responsables data'
+    help = "Populate Responsables data"
 
     def handle(self, *args, **options):
-        fake = Faker('es_AR')
-        num_registros = 1
+        fake = Faker("es_AR")
+        num_registros = 10
 
         for _ in range(num_registros):
             # Generar datos falsos
@@ -18,7 +19,7 @@ class Command(BaseCommand):
             email = fake.email()
 
             # Seleccionar una sede aleatoria para asociar al responsable
-            sede = Sede.objects.order_by('?').first()
+            sede = Sede.objects.order_by("?").first()
 
             # Crear el responsable y asociarlo a la sede
             responsable = Responsable.objects.create(
@@ -26,7 +27,11 @@ class Command(BaseCommand):
                 nombre=nombre,
                 apellido=apellido,
                 telefono=telefono,
-                email=email
+                email=email,
             )
 
-            self.stdout.write(self.style.SUCCESS(f'Se generó y guardó el Responsable: {responsable}'))
+            sede.responsables.add(responsable)
+
+            self.stdout.write(
+                self.style.SUCCESS(f"Se generó y guardó el Responsable: {responsable}")
+            )

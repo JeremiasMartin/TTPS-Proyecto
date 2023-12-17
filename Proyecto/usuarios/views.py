@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView
 from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm, PasswordResetForm
 from django.urls import reverse_lazy
+from datetime import date
 
 
 def representante_signup(request):
@@ -237,6 +238,7 @@ def cambiar_estado_espacio(request,sede_id):
         elif request.POST.get('action') == 'rechazar':
             espacio.estado = 'RECHAZADO'
             espacio.motivo = request.POST.get('reason')
+        espacio.fecha_creacion = date.today()
         print(espacio)
         espacio.save()
 
