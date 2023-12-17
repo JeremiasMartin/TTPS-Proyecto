@@ -73,7 +73,7 @@ class Command(BaseCommand):
         geolocator = Nominatim(user_agent="my_app")
 
         # Obtener información de geolocalización para la provincia
-        location = geolocator.geocode(f"{provincia}, Argentina", language="es", timeout=10)
+        location = geolocator.geocode(f"{provincia}, Argentina", language="es", timeout=2)
 
         # Extraer información relevante
         ciudad = self.obtener_localidad_desde_coordenadas(
