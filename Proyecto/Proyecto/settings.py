@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'crispy_forms',
     'espacios_obligados',
+    'datawarehouse',
 ]
 
 MIDDLEWARE = [
@@ -93,8 +94,18 @@ DATABASES = {
         'PASSWORD': config('PASSWORD'),
         'HOST': config('HOST'),
         'PORT': config('PORT'),
-    }
+    },
+    'datawarehouse': {
+        'ENGINE': config('ENGINE'),
+        'NAME': config('NAME2'),
+        'USER': config('USER'),
+        'PASSWORD': config('PASSWORD'),
+        'HOST': config('HOST'),
+        'PORT': config('PORT'),
+    },
 }
+
+DATABASE_ROUTERS = ['datawarehouse.routers.DataWarehouseRouter']
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
 

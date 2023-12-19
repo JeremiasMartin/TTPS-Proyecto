@@ -43,7 +43,8 @@ class Sede(models.Model):
 class EspacioObligado(models.Model):
     estado = models.CharField(max_length=100,default='EN PROCESO')  # Agregando el campo estado
     sede = models.ForeignKey(Sede, on_delete=models.CASCADE)
-    motivo= models.TextField(blank=True,default='')
+    motivo = models.TextField(blank=True,default='')
+    fecha_creacion = models.DateField()
     def __str__(self):
         return f'!nombre sede {self.sede.nombre} y estado{self.estado}'
 
@@ -108,7 +109,7 @@ class EventoMuerteSubita(models.Model):
     tiempo_rcp = models.IntegerField(null=True, blank=True)
     dea = models.ForeignKey(DEA, on_delete=models.CASCADE, null=True, blank=True)
     inconveniente = models.CharField(max_length=250, blank=True, null=True)
-    descarga_electrica = models.BooleanField(default=False)
+    descarga_electrica = models.BooleanField(default=False, null=True, blank=True)
     cantidad_descarga = models.IntegerField(null=True, blank=True)
     observaciones = models.TextField(null=True, blank=True)
     sede_id = models.ForeignKey(Sede, on_delete=models.CASCADE)

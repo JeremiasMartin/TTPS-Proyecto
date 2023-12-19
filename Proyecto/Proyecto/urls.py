@@ -21,4 +21,5 @@ urlpatterns = [
     path('', include('ProyectoApp.urls')),
     path('usuarios/', include('usuarios.urls')),
     path('espacios/', include('espacios_obligados.urls')),
+    path('datawarehouse/', include('datawarehouse.urls')),
 ]

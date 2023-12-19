@@ -10,9 +10,17 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
+from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
 from django.conf import settings
+from django.db.models import Q
 
 # Create your views here.
+import schedule
+import threading
+import time
+from datetime import datetime
+from datetime import timedelta
+from django.utils import timezone
 
 
 def registrar_entidad(request):
@@ -20,8 +28,14 @@ def registrar_entidad(request):
     if request.method == 'POST':
         form = EntidadForm(request.POST)
         if form.is_valid():
-            entidad = form.save()
-            return redirect('registrar_sede', entidad_id=entidad.id)
+            cuit = form.cleaned_data['cuit']
+            try:
+                entidad = Entidad.objects.filter(cuit=cuit).first() # si ya existe solo pasa la primera entidady pasa a guardar sede
+                return redirect('registrar_sede', entidad_id=entidad.id)
+            except :
+                print("La entidad no existe.")# si no existe solo guarda y pasa a la sede
+                entidad = form.save()
+                return redirect('registrar_sede', entidad_id=entidad.id)
     else:
         form = EntidadForm()
     return render(request, 'entidad/registrar_entidad.html', {'form': form, 'entidades': entidades})
@@ -33,7 +47,7 @@ def registrar_sede(request, entidad_id):
 
     if request.method == 'POST':
         form = SedeForm(request.POST)
-        if form.is_valid():
+        if form.is_valid():            
             sede = form.save(commit=False)
             sede.entidad = entidad
             # Obtiene el valor de la ubicación del campo oculto
@@ -44,15 +58,53 @@ def registrar_sede(request, entidad_id):
                     latitud, longitud = coordenadas_list
                     sede.ubicacion = Point(float(longitud), float(latitud))
             representante = Representante.objects.get(user=request.user)
-            sede.save()  # Guarda la sede primero
-            # Agrega representantes después de guardar la sede
-            sede.representantes.add(representante)
+            try:
+                if sede_y_direccion_ya_existe(sede.nombre, sede.direccion,sede.entidad.id):
+                    if representante_ya_existe_en_sede(sede.nombre,representante):
+                        ##-->si el representante ya existe para la sede se muestra un error
+                        messages.warning(request, 'Este representante ya está asociado a esta sede.')
+                        return redirect('registrar_sede', entidad_id=entidad_id)
+                    else:
+                        try:
+                            sede_existente = Sede.objects.filter(nombre=sede.nombre, direccion=sede.direccion).first()
+                        except MultipleObjectsReturned:
+                            print("Hay múltiples sedes con el mismo nombre y dirección.")
+                        nueva_solicitud=SolicitudAprobacion.objects.create(
+                            representante=representante,
+                            entidad=entidad,
+                            sede=sede_existente,
+                            motivo="Autogenerado por sistema"  # Reemplaza con el motivo real
+                        )
+                        nueva_solicitud.save()
+                else:
+                    sede.save()  # Guarda la sede primero #la sede no existe entonces guarda
+                    # Agrega representantes después de guardar la sede
+                    sede.representantes.add(representante)
+                #la sede existe entonces no la guarda
+            except Exception as e:
+                 print(f"Error: {e}")
+
             return redirect('listar_sedes', entidad_id=entidad.id)
     else:
         form = SedeForm()
     provincias = Provincias.objects.all()
     return render(request, 'sede/registrar_sede.html', {'form': form, 'entidad': entidad, 'sedes': sedes, 'provincias': provincias})
 
+def sede_y_direccion_ya_existe(nombre, direccion,entidad_id):
+    try:
+        # Verifica si ya existe una sede con el mismo nombre y dirección
+        Sede.objects.get(nombre=nombre, direccion=direccion, entidad_id=entidad_id)
+        return True
+    except ObjectDoesNotExist:
+        return False
+    
+def representante_ya_existe_en_sede(nombre_sede,representante):
+    try:
+        sede = Sede.objects.get(nombre=nombre_sede)
+    except Sede.DoesNotExist:
+        return False
+
+    return sede.representantes.filter(pk=representante.pk).exists()
 
 def listar_sedes(request, entidad_id):
     entidad = Entidad.objects.get(id=entidad_id)
@@ -423,8 +475,13 @@ def aprobar_solicitud(request, solicitud_id):
         return HttpResponseForbidden("No tienes permisos para realizar esta acción.")
     
     solicitud = get_object_or_404(SolicitudAprobacion, pk=solicitud_id)
+
+    representante_solicitud = solicitud.representante
+    sede_solicitud = solicitud.sede
+    sede_solicitud.representantes.add(representante_solicitud)
+    sede_solicitud.save()
+
     solicitud.aprobado = True
-    solicitud.aprobado_por = request.user.adminprovincial
     solicitud.save()
     return redirect('lista_solicitudes_pendientes')
 
@@ -452,19 +509,21 @@ def solicitud_aprobacion(request):
             try:
                 espacio_obligado = EspacioObligado.objects.get(sede=sede)
             except EspacioObligado.DoesNotExist:
-                mensaje = "El EspacioObligado asociado a esta sede no existe"
+                
+                print("!!!!!!!!!El EspacioObligado asociado a esta sede no existe")
                 return render(request, 'solicitud_aprobacion.html', {'form': form, 'mensaje': mensaje})
 
 
             # Verificar que el representante no exista en la lista de representantes
             if sede.representantes.filter(representante_id=representante.representante_id).exists():
                 mensaje = "Usted ya está asociado a esta sede"
+                print("!!!!!!!!!!Usted ya está asociado a esta sede")
                 return render(request, 'solicitud_aprobacion.html', {'form': form, 'mensaje':mensaje})
             
             # Verificar si ya existe una solicitud con la misma entidad y sede
             if SolicitudAprobacion.objects.filter(entidad=sede.entidad, sede=sede).exists():
                 # Mostrar un mensaje de error
-                mensaje = "Ud ya tiene una solicitud de aprobación para la entidad-sede"
+                print("!!!!!!!Ud ya tiene una solicitud de aprobación para la entidad-sede")
                 return render(request, 'solicitud_aprobacion.html', {'form': form, 'mensaje':mensaje})
             
             
@@ -515,6 +574,27 @@ def nueva_visita(request, espacio_obligado_id):
             if visita.resultado == 'aprobado':
                 espacio_obligado.estado = 'CARDIO ASISTIDO CERTIFICADO'
                 espacio_obligado.save()
+
+                # Comienzo a configurar el CRON
+                # Obtener la fecha y hora actual en la zona horaria configurada en Django
+                fecha_hoy = timezone.localtime().replace(tzinfo=None)
+                validez_certificado = espacio_obligado.sede.provincia.validez_certificado
+                fecha_visita = visita.fecha_hora.replace(tzinfo=None)
+                # Obtengo la fecha de vencimiento de la certificación
+                fecha_vencimiento = fecha_visita + timedelta(days=validez_certificado)
+                hora_recordatorio = fecha_vencimiento
+
+                # Comparación de fechas
+                if fecha_vencimiento <= fecha_hoy:
+                    print("se envia hoy", fecha_vencimiento.strftime('%H:%M'))
+                    # Si la fecha de vencimiento es hoy, envío un correo al usuario certificante
+                    schedule.every().day.at(fecha_vencimiento.strftime('%H:%M')).do(enviar_recordatorio, certificante, visita, espacio_obligado)
+                # Ejecutar las tareas pendientes en el objeto `schedule.jobs`
+                if not schedule.jobs:
+                    threading.Thread(target=run_scheduler, daemon=True).start()
+                # Finaliza CRON
+        
+
             else:
                 espacio_obligado.estado = 'CARDIO ASISTIDO'
                 espacio_obligado.save()
@@ -563,3 +643,42 @@ def listar_eventos_muerte_subita(request, sede_id):
     sede = Sede.objects.get(id=sede_id)
     eventos = EventoMuerteSubita.objects.filter(sede_id=sede_id)
     return render(request, 'sede/listar_eventos_muerte_subita.html', {'eventos': eventos, 'sede': sede})
+
+
+
+def run_scheduler():
+    # Función que ejecuta el planificador en un bucle continuo
+    while True:
+        ("entra al run scheduler")
+        schedule.run_pending()
+        time.sleep(1)  # Pausa para evitar consumo excesivo de recursos
+
+
+def enviar_recordatorio(certificante, visita, espacio_obligado):
+
+    subject = '[ResucitAR] Notificación de Vencimiento de Certificación'
+    from_email = 'ResucitAR <%s>' % (settings.EMAIL_HOST_USER)
+    reply_to_email = 'noreply@resucitar.com'
+    to_email = certificante.user.email
+
+    # Plantilla para el contenido del correo
+    text_content = get_template('mail/vencimiento_certificacion.txt')
+    html_content = get_template('mail/vencimiento_certificacion.html')
+
+    context = {
+        'visita': visita,
+        'certificante': certificante,
+        'sede': espacio_obligado.sede_id,
+    }
+
+    text_content_rendered = text_content.render(context)
+    html_content_rendered = html_content.render(context)
+
+    # Crear el objeto de correo electrónico
+    email = EmailMultiAlternatives(subject, text_content_rendered, from_email, to=[to_email,], reply_to=[reply_to_email,])
+    email.mixed_subtype = 'related'
+    email.content_subtype = 'html'
+    email.attach_alternative(html_content_rendered, 'text/html')
+
+    # Enviar el correo
+    email.send(fail_silently=False)
